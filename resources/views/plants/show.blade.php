@@ -94,10 +94,21 @@ $(document).ready(function() {
         e.preventDefault();
         const button = $(this);
         const plantId = button.data('plant-id');
-        const quantity = $('#quantity').val();
+        const quantity = parseInt($('#quantity').val());
+        const currentStock = parseInt($('.available-quantity').text());
 
-        button.prop('disabled', true);
-        toastr.info('Adding to cart...'); // Loading notification
+        if (quantity > currentStock) {
+            notif({
+                type: 'warning',
+                msg: 'Cannot add more items than available in stock',
+                position: 'right',
+                fade: true
+            });
+            return;
+        }
+
+        button.prop('disabled', true)
+              .html('<i class="fe fe-loader"></i> Adding...');
 
         $.ajax({
             url: "{{ route('cart.add', ':id') }}".replace(':id', plantId),
@@ -108,37 +119,97 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if (response.success) {
-                    toastr.success(response.message || 'Added to cart successfully');
-                    updateCartCount(response.cart_count);
+                    // Calculate and update remaining stock
+                    const remainingStock = currentStock - quantity;
                     
-                    // Update available quantity
-                    const newQuantity = {{ $plant->quantity }} - quantity;
-                    $('.available-quantity').text(newQuantity);
+                    // Update displayed quantity
+                    $('.available-quantity').text(remainingStock);
                     
-                    // Disable button if no more stock
-                    if (newQuantity <= 0) {
-                        button.prop('disabled', true).text('Out of Stock');
+                    // Update max attribute of quantity input
+                    $('#quantity').attr('max', remainingStock);
+                    
+                    // Reset quantity input to 1 or disable if no stock
+                    if (remainingStock > 0) {
+                        $('#quantity').val(1);
+                    } else {
+                        $('#quantity').val(0).prop('disabled', true);
                     }
+
+                    // Update stock status badge
+                    const stockBadge = $('.stock-status');
+                    if (remainingStock <= 0) {
+                        stockBadge.removeClass('bg-success bg-info')
+                                .addClass('bg-danger')
+                                .text('Out of Stock');
+                        
+                        button.prop('disabled', true)
+                              .removeClass('btn-primary')
+                              .addClass('btn-secondary')
+                              .html('<i class="fe fe-x-circle me-2"></i>Out of Stock');
+                    } else {
+                        stockBadge.removeClass('bg-danger')
+                                .addClass('bg-success')
+                                .text('In Stock');
+                    }
+
+                    // Show success notification
+                    notif({
+                        type: 'success',
+                        msg: response.message || 'Added to cart successfully',
+                        position: 'right',
+                        fade: true
+                    });
+
+                    // Update cart count in header
+                    if (response.cart_count) {
+                        updateCartCount(response.cart_count);
+                    }
+
                 } else {
-                    toastr.error(response.message || 'Failed to add to cart');
+                    notif({
+                        type: 'error',
+                        msg: response.message || 'Failed to add to cart',
+                        position: 'right',
+                        fade: true
+                    });
+                    button.prop('disabled', false)
+                          .html('<i class="fe fe-shopping-cart me-2"></i>Add to Cart');
                 }
             },
             error: function(xhr) {
-                toastr.error(xhr.responseJSON?.message || 'Error adding to cart');
+                notif({
+                    type: 'error',
+                    msg: xhr.responseJSON?.message || 'Error adding to cart',
+                    position: 'right',
+                    fade: true
+                });
+                button.prop('disabled', false)
+                      .html('<i class="fe fe-shopping-cart me-2"></i>Add to Cart');
             },
             complete: function() {
-                button.prop('disabled', false);
+                if (parseInt($('.available-quantity').text()) > 0) {
+                    button.prop('disabled', false)
+                          .html('<i class="fe fe-shopping-cart me-2"></i>Add to Cart');
+                }
             }
         });
     });
 
     // Quantity input validation
     $('#quantity').on('input', function() {
-        const max = {{ $plant->quantity }};
-        const val = parseInt($(this).val());
-        if (val > max) {
+        const max = parseInt($(this).attr('max'));
+        const val = parseInt($(this).val()) || 0;
+        
+        if (val <= 0) {
+            $(this).val(1);
+        } else if (val > max) {
             $(this).val(max);
-            toastr.warning('Maximum available quantity is ' + max);
+            notif({
+                type: 'warning',
+                msg: 'Maximum available quantity is ' + max,
+                position: 'right',
+                fade: true
+            });
         }
     });
 });
