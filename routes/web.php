@@ -119,11 +119,13 @@ Route::get('/plants/{plant}', [PlantController::class, 'show'])->name('plants.sh
 
 // Cart Routes (for users only)
 Route::middleware(['auth', 'role:user'])->group(function () {
-    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-    Route::post('/cart/add/{plant}', [CartController::class, 'add'])->name('cart.add');
-    Route::patch('/cart/update', [CartController::class, 'update'])->name('cart.update');
-    Route::delete('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
-    Route::get('/cart/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
+    Route::controller(CartController::class)->group(function () {
+        Route::get('/cart', 'index')->name('cart.index');
+        Route::post('/cart/add/{plant}', 'add')->name('cart.add');
+        Route::patch('/cart/update', 'update')->name('cart.update');
+        Route::delete('/cart/remove', 'remove')->name('cart.remove');
+        Route::get('/cart/checkout', 'checkout')->name('cart.checkout');
+    });
 });
 
 // Order Routes (for authenticated users)

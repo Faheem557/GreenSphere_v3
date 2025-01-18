@@ -168,3 +168,10 @@ use Illuminate\Support\Facades\Schema;
     });
 </script>
 @endpush
+
+<div class="cart-icon-wrapper">
+    <i class="fe fe-shopping-cart"></i>
+    <span class="cart-counter badge bg-primary">
+        {{ array_sum(array_column(session()->get('cart', []), 'quantity')) }}
+    </span>
+</div>

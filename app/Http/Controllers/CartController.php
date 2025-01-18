@@ -74,24 +74,23 @@ class CartController extends BaseController
                 ];
             }
             
+            // Update plant quantity in database (only decrement once)
+            $plant->decrement('quantity', $request->quantity);
+            
             // Update session
             session()->put('cart', $cart);
             
-            // Broadcast the event
-            try {
-                broadcast(new CartUpdated(auth()->user()))->toOthers();
-            } catch (\Exception $e) {
-                \Log::error('Pusher broadcast failed: ' . $e->getMessage());
-            }
+            // Get total items in cart
+            $cartCount = array_sum(array_column($cart, 'quantity'));
             
-            \Log::info('Item added to cart successfully', [
-                'cart_count' => count($cart)
-            ]);
+            // Calculate remaining quantity correctly
+            $remaining_quantity = $plant->quantity;
             
             return response()->json([
                 'success' => true,
                 'message' => $plant->name . ' added to cart successfully',
-                'cart_count' => count($cart)
+                'cart_count' => $cartCount,
+                'remaining_quantity' => $remaining_quantity
             ]);
 
         } catch (\Exception $e) {
@@ -105,35 +104,108 @@ class CartController extends BaseController
 
     public function update(Request $request)
     {
-        $request->validate([
-            'id' => 'required|exists:plants,id',
-            'quantity' => 'required|integer|min:1'
-        ]);
+        try {
+            $request->validate([
+                'id' => 'required|exists:plants,id',
+                'quantity' => 'required|integer|min:1'
+            ]);
 
-        $cart = session()->get('cart', []);
-        
-        if(isset($cart[$request->id])) {
-            $cart[$request->id]['quantity'] = $request->quantity;
-            session()->put('cart', $cart);
+            $cart = session()->get('cart', []);
             
-            broadcast(new CartUpdated(auth()->user()))->toOthers();
+            if(isset($cart[$request->id])) {
+                $plant = Plant::findOrFail($request->id);
+                $oldQuantity = $cart[$request->id]['quantity'];
+                $newQuantity = $request->quantity;
+                
+                // Calculate quantity difference
+                $quantityDifference = $oldQuantity - $newQuantity;
+                
+                // Update plant quantity in database
+                if ($quantityDifference > 0) {
+                    // If reducing cart quantity, restore to plant
+                    $plant->increment('quantity', $quantityDifference);
+                } else {
+                    // If increasing cart quantity, check if enough stock
+                    $neededQuantity = abs($quantityDifference);
+                    if ($plant->quantity < $neededQuantity) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Not enough stock available'
+                        ], 422);
+                    }
+                    $plant->decrement('quantity', $neededQuantity);
+                }
+                
+                // Update cart quantity
+                $cart[$request->id]['quantity'] = $newQuantity;
+                session()->put('cart', $cart);
+                
+                // Calculate total items in cart
+                $cartCount = array_sum(array_column($cart, 'quantity'));
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Cart updated successfully',
+                    'cart_count' => $cartCount,
+                    'remaining_quantity' => $plant->quantity
+                ]);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Item not found in cart'
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Cart Update Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update cart'
+            ], 500);
         }
-        
-        return response()->json(['success' => true]);
     }
 
     public function remove(Request $request)
     {
-        $cart = session()->get('cart', []);
-        
-        if(isset($cart[$request->id])) {
-            unset($cart[$request->id]);
-            session()->put('cart', $cart);
+        try {
+            $cart = session()->get('cart', []);
             
-            broadcast(new CartUpdated(auth()->user()))->toOthers();
+            // Check if item exists in cart
+            if(isset($cart[$request->id])) {
+                // Get the plant and quantity being removed
+                $plant = Plant::findOrFail($request->id);
+                $quantityToRestore = $cart[$request->id]['quantity'];
+                
+                // Restore the quantity to the plant
+                $plant->increment('quantity', $quantityToRestore);
+                
+                // Remove from cart
+                unset($cart[$request->id]);
+                session()->put('cart', $cart);
+                
+                // Calculate total items in cart
+                $cartCount = array_sum(array_column($cart, 'quantity'));
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Item removed from cart successfully',
+                    'cart_count' => $cartCount,
+                    'restored_quantity' => $quantityToRestore
+                ]);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Item not found in cart'
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Cart Remove Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to remove item from cart'
+            ], 500);
         }
-        
-        return response()->json(['success' => true]);
     }
 
     public function checkout()

@@ -2,6 +2,10 @@
 
 @section('title', 'Plant Details')
 
+@push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.css">
+@endpush
+
 @section('maincontent')
 <div class="container-fluid">
     <div class="row">
@@ -28,7 +32,7 @@
             
             <!-- Stock and Add to Cart Section -->
             <div class="mt-4">
-                <p class="mb-2">Available Quantity: {{ $plant->quantity }}</p>
+                <p class="mb-2">Available Quantity: <span class="available-quantity">{{ $plant->quantity }}</span></p>
                 @if($plant->quantity > 0)
                     <div class="d-flex align-items-center gap-3">
                         <input type="number" 
@@ -88,108 +92,100 @@
 </div>
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.js"></script>
 <script>
 $(document).ready(function() {
+    // Replace the notif function with Noty
+    function showNotification(type, message) {
+        new Noty({
+            type: type,
+            text: message,
+            timeout: 3000,
+            progressBar: true,
+            theme: 'bootstrap-v4'
+        }).show();
+    }
+
+    function updateCartCount(count) {
+        $('.cart-counter').text(count);
+    }
+
+    function resetButton(button, enabled = true) {
+        button.prop('disabled', !enabled)
+              .html(enabled ? 'Add to Cart' : 'Out of Stock');
+        
+        if (!enabled) {
+            button.removeClass('btn-primary').addClass('btn-secondary');
+        } else {
+            button.removeClass('btn-secondary').addClass('btn-primary');
+        }
+    }
+
     $('.add-to-cart').click(function(e) {
+        console.clear();    
         e.preventDefault();
         const button = $(this);
         const plantId = button.data('plant-id');
         const quantity = parseInt($('#quantity').val());
         const currentStock = parseInt($('.available-quantity').text());
 
+        // Add debugging logs
+        console.log('Current stock before adding to cart:', currentStock);
+        console.log('Quantity being added:', quantity);
+
         if (quantity > currentStock) {
-            notif({
-                type: 'warning',
-                msg: 'Cannot add more items than available in stock',
-                position: 'right',
-                fade: true
-            });
+            showNotification('warning', 'Cannot add more items than available in stock');
             return;
         }
 
+        // Show loading state
         button.prop('disabled', true)
-              .html('<i class="fe fe-loader"></i> Adding...');
+              .html('Adding...');
 
         $.ajax({
-            url: "{{ route('cart.add', ':id') }}".replace(':id', plantId),
+            url: "{{ route('cart.add', '') }}/" + plantId,
             method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
             data: {
-                quantity: quantity,
-                _token: '{{ csrf_token() }}'
+                quantity: quantity
             },
             success: function(response) {
                 if (response.success) {
-                    // Calculate and update remaining stock
-                    const remainingStock = currentStock - quantity;
+                    const newQuantity = response.remaining_quantity;
+                    // Add debugging log
+                    console.log('New quantity after adding to cart:', newQuantity);
                     
-                    // Update displayed quantity
-                    $('.available-quantity').text(remainingStock);
+                    $('.available-quantity').text(newQuantity);
+                    updateCartCount(response.cart_count);
+                    $('#quantity').attr('max', newQuantity);
                     
-                    // Update max attribute of quantity input
-                    $('#quantity').attr('max', remainingStock);
-                    
-                    // Reset quantity input to 1 or disable if no stock
-                    if (remainingStock > 0) {
-                        $('#quantity').val(1);
+                    if (newQuantity <= 0) {
+                        $('.stock-status')
+                            .removeClass('bg-info')
+                            .addClass('bg-danger')
+                            .text('Out of Stock');
+                        resetButton(button, false);
                     } else {
-                        $('#quantity').val(0).prop('disabled', true);
+                        resetButton(button, true);
                     }
 
-                    // Update stock status badge
-                    const stockBadge = $('.stock-status');
-                    if (remainingStock <= 0) {
-                        stockBadge.removeClass('bg-success bg-info')
-                                .addClass('bg-danger')
-                                .text('Out of Stock');
-                        
-                        button.prop('disabled', true)
-                              .removeClass('btn-primary')
-                              .addClass('btn-secondary')
-                              .html('<i class="fe fe-x-circle me-2"></i>Out of Stock');
-                    } else {
-                        stockBadge.removeClass('bg-danger')
-                                .addClass('bg-success')
-                                .text('In Stock');
-                    }
-
-                    // Show success notification
-                    notif({
-                        type: 'success',
-                        msg: response.message || 'Added to cart successfully',
-                        position: 'right',
-                        fade: true
-                    });
-
-                    // Update cart count in header
-                    if (response.cart_count) {
-                        updateCartCount(response.cart_count);
-                    }
-
+                    showNotification('success', response.message);
+                    $('#quantity').val(1);
                 } else {
-                    notif({
-                        type: 'error',
-                        msg: response.message || 'Failed to add to cart',
-                        position: 'right',
-                        fade: true
-                    });
-                    button.prop('disabled', false)
-                          .html('<i class="fe fe-shopping-cart me-2"></i>Add to Cart');
+                    showNotification('error', response.message || 'Error adding to cart');
+                    resetButton(button, true);
                 }
             },
             error: function(xhr) {
-                notif({
-                    type: 'error',
-                    msg: xhr.responseJSON?.message || 'Error adding to cart',
-                    position: 'right',
-                    fade: true
-                });
-                button.prop('disabled', false)
-                      .html('<i class="fe fe-shopping-cart me-2"></i>Add to Cart');
+                const errorMessage = xhr.responseJSON?.message || 'Error adding to cart';
+                showNotification('error', errorMessage);
+                resetButton(button, true);
             },
             complete: function() {
-                if (parseInt($('.available-quantity').text()) > 0) {
-                    button.prop('disabled', false)
-                          .html('<i class="fe fe-shopping-cart me-2"></i>Add to Cart');
+                if (button.html() === 'Adding...') {
+                    resetButton(button, true);
                 }
             }
         });
@@ -197,19 +193,37 @@ $(document).ready(function() {
 
     // Quantity input validation
     $('#quantity').on('input', function() {
-        const max = parseInt($(this).attr('max'));
-        const val = parseInt($(this).val()) || 0;
+        const max = parseInt($('.available-quantity').text());
+        let val = $(this).val();
         
-        if (val <= 0) {
+        // Remove leading zeros
+        if (val.length > 1 && val[0] === '0') {
+            val = val.replace(/^0+/, '');
+            $(this).val(val);
+        }
+        
+        // Convert to integer, default to 1 if 0 or empty
+        val = parseInt(val) || 0;
+        
+        if (val === 0) {
             $(this).val(1);
         } else if (val > max) {
             $(this).val(max);
-            notif({
-                type: 'warning',
-                msg: 'Maximum available quantity is ' + max,
-                position: 'right',
-                fade: true
-            });
+            showNotification('warning', 'Maximum available quantity is ' + max);
+        }
+    });
+
+    // Handle focus to clear the input
+    $('#quantity').on('focus', function() {
+        if ($(this).val() === '1') {
+            $(this).val('');
+        }
+    });
+
+    // Handle blur to ensure minimum value
+    $('#quantity').on('blur', function() {
+        if (!$(this).val()) {
+            $(this).val(1);
         }
     });
 });

@@ -85,11 +85,21 @@
                                         </div>
                                         <div class="d-flex align-items-center justify-content-between">
                                             <span class="text-muted fs-12">Available: {{ $plant->quantity }}</span>
-                                            <button class="btn btn-primary add-to-cart" 
-                                                    data-plant-id="{{ $plant->id }}"
-                                                    {{ $plant->quantity <= 0 ? 'disabled' : '' }}>
-                                                <i class="fe fe-shopping-cart me-2"></i>Add to Cart
-                                            </button>
+                                            <div class="btn-group">
+                                                <a href="{{ route('plants.show', $plant->id) }}" class="btn btn-secondary">
+                                                    <i class="fe fe-eye me-1"></i>View Details e
+                                                </a>
+                                                <button class="btn btn-info quick-add-to-cart" 
+                                                        data-plant-id="{{ $plant->id }}"
+                                                        {{ $plant->quantity <= 0 ? 'disabled' : '' }}>
+                                                    <i class="fe fe-shopping-cart"></i>
+                                                </button>
+                                                <button class="btn btn-primary add-to-cart-one" 
+                                                        data-plant-id="{{ $plant->id }}"
+                                                        {{ $plant->quantity <= 0 ? 'disabled' : '' }}>
+                                                    Cart
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -128,12 +138,40 @@
 .product-content {
     padding: 15px;
     background: #fff;
+    display: flex;
+    flex-direction: column;
+}
+.product-content .d-flex {
+    flex-direction: column;
 }
 .product-grid .price {
     color: #000;
     font-size: 17px;
     font-weight: 700;
     margin: 0 0 10px;
+}
+.btn-group {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.btn-group .btn {
+    flex: 1;
+    padding: 8px;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.btn-group .quick-add-to-cart {
+    width: 46px;
+    padding: 8px;
+    flex: 0 0 auto;
+}
+
+.btn-group .btn:not(.quick-add-to-cart) {
+    flex: 1;
 }
 </style>
 @endpush
@@ -213,6 +251,100 @@ $(document).ready(function() {
             fade: true
         });
         updateCartCount(data.count);
+    });
+
+    // Quick Add to cart functionality
+    $('.quick-add-to-cart').click(function(e) {
+        e.preventDefault();
+        const button = $(this);
+        const plantId = button.data('plant-id');
+
+        button.prop('disabled', true).html('<i class="fe fe-loader"></i>');
+
+        $.ajax({
+            url: "{{ route('cart.add', ':id') }}".replace(':id', plantId),
+            method: 'POST',
+            data: {
+                quantity: 1,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    notif({
+                        type: 'success',
+                        msg: response.message || 'Added to cart successfully',
+                        position: 'right',
+                        fade: true
+                    });
+                    updateCartCount(response.cart_count);
+                } else {
+                    notif({
+                        type: 'error',
+                        msg: response.message || 'Failed to add to cart',
+                        position: 'right',
+                        fade: true
+                    });
+                }
+            },
+            error: function(xhr) {
+                notif({
+                    type: 'error',
+                    msg: xhr.responseJSON?.message || 'Error adding to cart',
+                    position: 'right',
+                    fade: true
+                });
+            },
+            complete: function() {
+                button.prop('disabled', false).html('<i class="fe fe-shopping-cart"></i>');
+            }
+        });
+    });
+
+    // New Cart button functionality
+    $('.add-to-cart-one').click(function(e) {
+        e.preventDefault();
+        const button = $(this);
+        const plantId = button.data('plant-id');
+
+        button.prop('disabled', true).html('<i class="fe fe-loader"></i>');
+
+        $.ajax({
+            url: "{{ route('cart.add', ':id') }}".replace(':id', plantId),
+            method: 'POST',
+            data: {
+                quantity: 1,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    notif({
+                        type: 'success',
+                        msg: response.message || 'Added to cart successfully',
+                        position: 'right',
+                        fade: true
+                    });
+                    updateCartCount(response.cart_count);
+                } else {
+                    notif({
+                        type: 'error',
+                        msg: response.message || 'Failed to add to cart',
+                        position: 'right',
+                        fade: true
+                    });
+                }
+            },
+            error: function(xhr) {
+                notif({
+                    type: 'error',
+                    msg: xhr.responseJSON?.message || 'Error adding to cart',
+                    position: 'right',
+                    fade: true
+                });
+            },
+            complete: function() {
+                button.prop('disabled', false).html('Cart');
+            }
+        });
     });
 });
 </script>
