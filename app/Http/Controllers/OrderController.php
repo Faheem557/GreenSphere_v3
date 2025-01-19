@@ -51,7 +51,10 @@ class OrderController extends BaseController
                 'location.city' => 'required|string',
                 'location.state' => 'required|string',
                 'location.zip' => 'required|string',
-                'payment_method' => 'required|in:cod'
+                'payment_method' => 'required|in:cod',
+                'delivery_option_id' => 'required|exists:delivery_options,id',
+                'preferred_delivery_date' => 'required|date|after:today',
+                'delivery_instructions' => 'nullable|string|max:500'
             ]);
 
             $cart = session()->get('cart', []);
@@ -116,6 +119,12 @@ class OrderController extends BaseController
                 'order_id' => $order->id,
                 'buyer_id' => auth()->id(),
                 'seller_id' => $sellerId
+            ]);
+
+            $order->update([
+                'delivery_option_id' => $request->delivery_option_id,
+                'preferred_delivery_date' => $request->preferred_delivery_date,
+                'delivery_instructions' => $request->delivery_instructions
             ]);
 
             return response()->json([

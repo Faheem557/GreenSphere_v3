@@ -292,25 +292,43 @@ class PlantController extends BaseController
         $query = Plant::where('is_active', true)
             ->where('quantity', '>', 0);
 
-        // Apply category filter
+        // Enhanced filtering
         if ($request->category) {
             $query->where('category', $request->category);
         }
 
-        // Apply price filter
-        if ($request->max_price) {
-            $query->where('price', '<=', $request->max_price);
-        }
-
-        // Apply search filter
-        if ($request->search) {
-            $query->where(function($q) use ($request) {
-                $q->where('name', 'like', "%{$request->search}%")
-                  ->orWhere('description', 'like', "%{$request->search}%");
+        if ($request->care_level) {
+            $query->whereHas('careGuide', function($q) use ($request) {
+                $q->where('care_difficulty', $request->care_level);
             });
         }
 
-        $plants = $query->paginate(12);
+        if ($request->price_range) {
+            $range = explode('-', $request->price_range);
+            $query->whereBetween('price', [$range[0], $range[1]]);
+        }
+
+        if ($request->rating) {
+            $query->whereHas('reviews', function($q) use ($request) {
+                $q->groupBy('plant_id')
+                  ->havingRaw('AVG(rating) >= ?', [$request->rating]);
+            });
+        }
+
+        // Advanced search
+        if ($request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', "%{$request->search}%")
+                  ->orWhere('description', 'like', "%{$request->search}%")
+                  ->orWhereHas('careGuide', function($sq) use ($request) {
+                      $sq->where('care_instructions', 'like', "%{$request->search}%");
+                  });
+            });
+        }
+
+        $plants = $query->with(['reviews', 'careGuide'])
+                        ->paginate(12);
+
         return view('plants.catalog', compact('plants'));
     }
 

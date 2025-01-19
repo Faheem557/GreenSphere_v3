@@ -50,4 +50,19 @@ class Plant extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    public function careGuide()
+    {
+        return $this->hasOne(PlantCareGuide::class);
+    }
+
+    public function maintenance()
+    {
+        return $this->hasMany(PlantMaintenance::class);
+    }
+
+    public function getAverageRatingAttribute()
+    {
+        return $this->reviews()->avg('rating') ?? 0;
+    }
 } 
