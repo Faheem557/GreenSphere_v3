@@ -186,3 +186,5 @@ Route::get('/debug-image/{filename}', function($filename) {
         'storage_link' => file_exists(public_path('storage')),
     ];
 });
+
+Route::post('/orders/checkout', [OrderController::class, 'checkout'])->name('orders.checkout');

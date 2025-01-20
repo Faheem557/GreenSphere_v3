@@ -24,25 +24,60 @@
                         <h3 class="card-title">Filters</h3>
                     </div>
                     <div class="card-body">
+                        <!-- Categories -->
                         <div class="custom-controls-stacked">
                             <h4 class="mb-3">Categories</h4>
                             @foreach(App\Models\Plant::CATEGORIES as $key => $category)
-                                <label class="custom-control custom-radio">
-                                    <input type="radio" class="custom-control-input" name="category" 
-                                           value="{{ $key }}" {{ request('category') === $key ? 'checked' : '' }}>
+                                <label class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" name="categories[]" 
+                                           value="{{ $key }}" {{ in_array($key, request('categories', [])) ? 'checked' : '' }}>
                                     <span class="custom-control-label">{{ $category }}</span>
                                 </label>
                             @endforeach
                         </div>
 
+                        <!-- Care Level -->
+                        <div class="mt-4">
+                            <h4 class="mb-3">Care Level</h4>
+                            @foreach(App\Models\Plant::CARE_LEVELS as $key => $level)
+                                <label class="custom-control custom-radio">
+                                    <input type="radio" class="custom-control-input" name="care_level" 
+                                           value="{{ $key }}" {{ request('care_level') === $key ? 'checked' : '' }}>
+                                    <span class="custom-control-label">{{ $level }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+
+                        <!-- Price Range -->
                         <div class="mt-4">
                             <h4 class="mb-3">Price Range</h4>
-                            <input type="range" class="form-range" id="priceRange" min="0" max="1000">
-                            <div class="d-flex justify-content-between mt-2">
-                                <span class="font-weight-bold">₹0</span>
-                                <span class="font-weight-bold" id="priceValue">₹500</span>
-                                <span class="font-weight-bold">₹1000</span>
+                            <div class="range-slider">
+                                <input type="range" class="form-range" id="minPrice" name="min_price" 
+                                       min="0" max="1000" value="{{ request('min_price', 0) }}">
+                                <input type="range" class="form-range" id="maxPrice" name="max_price" 
+                                       min="0" max="1000" value="{{ request('max_price', 1000) }}">
                             </div>
+                            <div class="d-flex justify-content-between">
+                                <span>₹<span id="minPriceValue">{{ request('min_price', 0) }}</span></span>
+                                <span>₹<span id="maxPriceValue">{{ request('max_price', 1000) }}</span></span>
+                            </div>
+                        </div>
+
+                        <!-- Delivery Options -->
+                        <div class="mt-4">
+                            <h4 class="mb-3">Delivery Options</h4>
+                            @foreach(App\Models\Plant::DELIVERY_OPTIONS as $key => $option)
+                                <label class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" name="delivery_options[]" 
+                                           value="{{ $key }}" {{ in_array($key, request('delivery_options', [])) ? 'checked' : '' }}>
+                                    <span class="custom-control-label">{{ $option }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+
+                        <!-- Apply Filters Button -->
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
                         </div>
                     </div>
                 </div>
@@ -80,6 +115,14 @@
                                     <div class="product-content">
                                         <h3 class="title fw-bold fs-20">{{ $plant->name }}</h3>
                                         <div class="mb-2 text-muted">{{ Str::limit($plant->description, 100) }}</div>
+                                        
+                                        <!-- Add care requirements -->
+                                        <div class="care-requirements mb-2">
+                                            <span class="badge bg-info">{{ ucfirst($plant->care_level) }}</span>
+                                            <span class="badge bg-light text-dark">Water: {{ $plant->water_needs }}</span>
+                                            <span class="badge bg-light text-dark">Light: {{ $plant->light_needs }}</span>
+                                        </div>
+                                        
                                         <div class="price mb-2">
                                             <span class="fs-18 fw-bold">₹{{ number_format($plant->price, 2) }}</span>
                                         </div>
@@ -234,11 +277,20 @@ $(document).ready(function() {
     // Price range handler
     $('#priceRange').on('input', function() {
         $('#priceValue').text('₹' + $(this).val());
+        // Add debounce to avoid too many requests
+        clearTimeout(window.priceTimeout);
+        window.priceTimeout = setTimeout(() => {
+            let params = new URLSearchParams(window.location.search);
+            params.set('max_price', $(this).val());
+            window.location.href = "{{ route('plants.catalog') }}?" + params.toString();
+        }, 500);
     });
 
     // Category filter handler
-    $('input[name="category"]').change(function() {
-        window.location.href = "{{ route('plants.catalog') }}?category=" + $(this).val();
+    $('input[name="category"], input[name="care_level"]').change(function() {
+        let params = new URLSearchParams(window.location.search);
+        params.set($(this).attr('name'), $(this).val());
+        window.location.href = "{{ route('plants.catalog') }}?" + params.toString();
     });
 
     // Cart update notification
@@ -345,6 +397,34 @@ $(document).ready(function() {
                 button.prop('disabled', false).html('Cart');
             }
         });
+    });
+
+    // Price range slider
+    const minPriceInput = $('#minPrice');
+    const maxPriceInput = $('#maxPrice');
+    const minPriceValue = $('#minPriceValue');
+    const maxPriceValue = $('#maxPriceValue');
+
+    function updatePriceRange() {
+        minPriceValue.text(minPriceInput.val());
+        maxPriceValue.text(maxPriceInput.val());
+    }
+
+    minPriceInput.on('input', updatePriceRange);
+    maxPriceInput.on('input', updatePriceRange);
+
+    // Dynamic filtering
+    let filterTimeout;
+    $('.filter-control').on('change', function() {
+        clearTimeout(filterTimeout);
+        filterTimeout = setTimeout(function() {
+            $('#filter-form').submit();
+        }, 500);
+    });
+
+    // Sort functionality
+    $('#sort-select').on('change', function() {
+        $('#filter-form').submit();
     });
 });
 </script>

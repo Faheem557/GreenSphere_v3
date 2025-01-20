@@ -21,7 +21,17 @@ class Plant extends Model
         'user_id',
         'image',
         'delivery_info',
-        'specifications'
+        'specifications',
+        'care_level',
+        'water_needs',
+        'light_needs',
+        'height',
+        'pot_size',
+        'maturity_time',
+        'season',
+        'toxicity',
+        'delivery_options',
+        'growth_habit'
     ];
 
     protected $casts = [
@@ -38,7 +48,35 @@ class Plant extends Model
         'flowering' => 'Flowering Plants',
         'succulents' => 'Succulents',
         'herbs' => 'Herbs',
-        'vegetables' => 'Vegetables'
+        'vegetables' => 'Vegetables',
+        'bonsai' => 'Bonsai Plants',
+        'air_purifying' => 'Air Purifying Plants',
+        'tropical' => 'Tropical Plants'
+    ];
+
+    public const CARE_LEVELS = [
+        'easy' => 'Easy Care',
+        'moderate' => 'Moderate Care',
+        'expert' => 'Expert Care'
+    ];
+
+    public const WATER_NEEDS = [
+        'low' => 'Low (Once every 2-3 weeks)',
+        'medium' => 'Medium (Weekly)',
+        'high' => 'High (2-3 times per week)'
+    ];
+
+    public const LIGHT_NEEDS = [
+        'low' => 'Low Light',
+        'medium' => 'Medium Light',
+        'bright' => 'Bright Indirect Light',
+        'direct' => 'Direct Sunlight'
+    ];
+
+    public const DELIVERY_OPTIONS = [
+        'standard' => 'Standard Delivery (3-5 days)',
+        'express' => 'Express Delivery (1-2 days)',
+        'pickup' => 'Store Pickup'
     ];
 
     public function reviews()

@@ -9,17 +9,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Order extends Model
 {
     protected $fillable = [
-        'seller_id',
         'buyer_id',
+        'seller_id',
+        'shipping_address',
+        'phone',
+        'payment_method',
         'status',
         'total_amount',
-        'payment_method',
-        'shipping_address',
-        'is_read'
+        'delivery_option_id',
+        'delivery_date',
+        'delivery_slot',
+        'delivery_instructions'
     ];
 
     protected $casts = [
-        'is_read' => 'boolean',
+        'shipping_address' => 'string',
+        'delivery_date' => 'datetime',
         'total_amount' => 'decimal:2'
     ];
 

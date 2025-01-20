@@ -69,12 +69,16 @@ class PlantController extends BaseController
 
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
-                // Generate a unique name with timestamp
                 $filename = time() . '_' . $image->getClientOriginalName();
-                // Store directly in the plants directory
                 $path = $image->storeAs('plants', $filename, 'public');
-                $data['image'] = $path; // Save the full path including 'plants/'
+                $data['image'] = $path;
             }
+
+            // Log the delivery options being set
+            Log::info('Creating plant with delivery options:', [
+                'user_id' => Auth::id(),
+                'delivery_options' => $data['delivery_options']
+            ]);
 
             Plant::create($data);
 
@@ -83,7 +87,13 @@ class PlantController extends BaseController
                 ->with('success', 'Plant added successfully!');
 
         } catch (\Exception $e) {
-            Log::error('Plant creation error: ' . $e->getMessage());
+            Log::error('Plant creation error', [
+                'error' => $e->getMessage(),
+                'user_id' => Auth::id(),
+                'data' => $request->except(['image']),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return back()
                 ->withInput()
                 ->with('error', 'Error adding plant. Please try again.');
@@ -200,7 +210,6 @@ class PlantController extends BaseController
             $data = $request->validated();
 
             if ($request->hasFile('image')) {
-                // Delete old image if exists
                 if ($plant->image) {
                     Storage::disk('public')->delete($plant->image);
                 }
@@ -211,6 +220,14 @@ class PlantController extends BaseController
                 $data['image'] = $path;
             }
 
+            // Log the delivery options being updated
+            Log::info('Updating plant delivery options:', [
+                'plant_id' => $plant->id,
+                'user_id' => Auth::id(),
+                'old_delivery_options' => $plant->delivery_options,
+                'new_delivery_options' => $data['delivery_options']
+            ]);
+
             $plant->update($data);
 
             return redirect()
@@ -218,7 +235,14 @@ class PlantController extends BaseController
                 ->with('success', 'Plant updated successfully!');
 
         } catch (\Exception $e) {
-            Log::error('Plant update error: ' . $e->getMessage());
+            Log::error('Plant update error', [
+                'error' => $e->getMessage(),
+                'plant_id' => $plant->id,
+                'user_id' => Auth::id(),
+                'data' => $request->except(['image']),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return back()
                 ->withInput()
                 ->with('error', 'Error updating plant. Please try again.');
@@ -292,41 +316,49 @@ class PlantController extends BaseController
         $query = Plant::where('is_active', true)
             ->where('quantity', '>', 0);
 
-        // Enhanced filtering
-        if ($request->category) {
-            $query->where('category', $request->category);
+        // Category filter
+        if ($request->has('categories')) {
+            $query->whereIn('category', $request->categories);
         }
 
+        // Care level filter
         if ($request->care_level) {
-            $query->whereHas('careGuide', function($q) use ($request) {
-                $q->where('care_difficulty', $request->care_level);
-            });
+            $query->where('care_level', $request->care_level);
         }
 
-        if ($request->price_range) {
-            $range = explode('-', $request->price_range);
-            $query->whereBetween('price', [$range[0], $range[1]]);
+        // Price range filter
+        if ($request->min_price) {
+            $query->where('price', '>=', $request->min_price);
+        }
+        if ($request->max_price) {
+            $query->where('price', '<=', $request->max_price);
         }
 
-        if ($request->rating) {
-            $query->whereHas('reviews', function($q) use ($request) {
-                $q->groupBy('plant_id')
-                  ->havingRaw('AVG(rating) >= ?', [$request->rating]);
-            });
+        // Delivery options filter
+        if ($request->has('delivery_options')) {
+            $query->whereJsonContains('delivery_options', $request->delivery_options);
         }
 
-        // Advanced search
+        // Water needs filter
+        if ($request->water_needs) {
+            $query->where('water_needs', $request->water_needs);
+        }
+
+        // Light needs filter
+        if ($request->light_needs) {
+            $query->where('light_needs', $request->light_needs);
+        }
+
+        // Search by name or description
         if ($request->search) {
             $query->where(function($q) use ($request) {
                 $q->where('name', 'like', "%{$request->search}%")
-                  ->orWhere('description', 'like', "%{$request->search}%")
-                  ->orWhereHas('careGuide', function($sq) use ($request) {
-                      $sq->where('care_instructions', 'like', "%{$request->search}%");
-                  });
+                  ->orWhere('description', 'like', "%{$request->search}%");
             });
         }
 
-        $plants = $query->with(['reviews', 'careGuide'])
+        $plants = $query->with(['reviews', 'seller', 'careGuide'])
+                        ->orderBy($request->sort_by ?? 'created_at', $request->sort_order ?? 'desc')
                         ->paginate(12);
 
         return view('plants.catalog', compact('plants'));

@@ -13,6 +13,9 @@ use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use App\Events\NewOrderReceived;
+use App\Http\Requests\CheckoutRequest;
+use Illuminate\Validation\Rule;
+use App\Models\Cart;
 
 class OrderController extends BaseController
 {
@@ -51,10 +54,17 @@ class OrderController extends BaseController
                 'location.city' => 'required|string',
                 'location.state' => 'required|string',
                 'location.zip' => 'required|string',
-                'payment_method' => 'required|in:cod',
-                'delivery_option_id' => 'required|exists:delivery_options,id',
+                'payment_method' => 'required|in:cod,online',
+                'delivery_option_id' => ['required', 'string', Rule::in(array_keys(Plant::DELIVERY_OPTIONS))],
                 'preferred_delivery_date' => 'required|date|after:today',
                 'delivery_instructions' => 'nullable|string|max:500'
+            ]);
+
+            // Add better error logging
+            Log::info('Order validation passed', [
+                'user_id' => auth()->id(),
+                'delivery_option' => $request->delivery_option_id,
+                'available_options' => array_keys(Plant::DELIVERY_OPTIONS)
             ]);
 
             $cart = session()->get('cart', []);
@@ -80,6 +90,7 @@ class OrderController extends BaseController
                 'total_amount' => $this->calculateTotal($cart),
                 'status' => 'pending',
                 'payment_method' => $request->payment_method,
+                // 'shipping_address' => $request->shipping_address,
                 'shipping_address' => json_encode([
                     'name' => $request->name,
                     'email' => $request->email,
@@ -131,6 +142,14 @@ class OrderController extends BaseController
                 'success' => true,
                 'order' => $order->load('items'),
                 'redirect' => route('orders.confirmation', $order->id)
+            ]);
+            // Log the order details
+            Log::info('Order created successfully', [
+                'order_id' => $order->id,
+                'buyer_id' => auth()->id(),
+                'seller_id' => $sellerId,
+                'total_amount' => $order->total_amount,
+                'delivery_option' => $request->delivery_option_id
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -220,5 +239,89 @@ class OrderController extends BaseController
 
         $order->load(['items.plant', 'buyer', 'seller']);
         return view('user.order-tracking', compact('order'));
+    }
+
+    public function checkout(CheckoutRequest $request)
+    {
+        try {
+            $validatedData = $request->validated();
+            $cart = Cart::getItems();
+            
+            if (empty($cart)) {
+                throw new \Exception('Cart is empty');
+            }
+            
+            DB::beginTransaction();
+            
+            try {
+                $order = Order::create([
+                    'buyer_id' => auth()->id(),
+                    'seller_id' => 1, // Assuming this is correct for your case
+                    'shipping_address' => json_encode([
+                        'name' => $request->name,
+                        'email' => $request->email,
+                        'address' => $request->location['address'],
+                        'city' => $request->location['city'],
+                        'state' => $request->location['state'],
+                        'zip' => $request->location['zip']
+                    ]),
+                    'phone' => $validatedData['phone'],
+                    'payment_method' => $validatedData['payment_method'],
+                    'delivery_date' => $validatedData['delivery']['date'],
+                    'delivery_slot' => $validatedData['delivery']['slot'],
+                    'delivery_instructions' => $validatedData['delivery']['instructions'],
+                    'status' => 'pending',
+                    'total_amount' => Cart::getTotal()
+                ]);
+
+                // Create order items
+                foreach ($cart as $id => $item) {
+                    $plant = Plant::findOrFail($id);
+                    
+                    // Check stock availability
+                    if ($plant->quantity < $item['quantity']) {
+                        throw new \Exception("Insufficient stock for plant: {$plant->name}");
+                    }
+                    
+                    $order->items()->create([
+                        'plant_id' => $id,
+                        'quantity' => $item['quantity'],
+                        'unit_price' => $item['price'],
+                        'subtotal' => $item['price'] * $item['quantity']
+                    ]);
+                    
+                    // Update plant stock
+                    $plant->decrement('quantity', $item['quantity']);
+                }
+                
+                // Clear the cart after successful order
+                Cart::clear();
+                
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Order placed successfully!',
+                    // redirect to user dashboard
+                    'redirect' => route('user.dashboard')
+                ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('Checkout error', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+                'request_data' => $validatedData ?? null
+            ]);
+            
+            return response()->json([
+                'message' => 'Checkout failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
