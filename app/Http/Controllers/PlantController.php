@@ -313,12 +313,16 @@ class PlantController extends BaseController
 
     public function catalog(Request $request)
     {
-        $query = Plant::where('is_active', true)
-            ->where('quantity', '>', 0);
+        $query = Plant::where('is_active', true);
 
-        // Category filter
+        // Main category filter
         if ($request->has('categories')) {
             $query->whereIn('category', $request->categories);
+        }
+
+        // Sub-category filter
+        if ($request->sub_category) {
+            $query->where('sub_category', $request->sub_category);
         }
 
         // Care level filter
@@ -334,11 +338,6 @@ class PlantController extends BaseController
             $query->where('price', '<=', $request->max_price);
         }
 
-        // Delivery options filter
-        if ($request->has('delivery_options')) {
-            $query->whereJsonContains('delivery_options', $request->delivery_options);
-        }
-
         // Water needs filter
         if ($request->water_needs) {
             $query->where('water_needs', $request->water_needs);
@@ -349,6 +348,19 @@ class PlantController extends BaseController
             $query->where('light_needs', $request->light_needs);
         }
 
+        // Season filter
+        if ($request->season) {
+            $query->where('season', $request->season);
+        }
+
+        // Height filter
+        if ($request->min_height) {
+            $query->where('height', '>=', $request->min_height);
+        }
+        if ($request->max_height) {
+            $query->where('height', '<=', $request->max_height);
+        }
+
         // Search by name or description
         if ($request->search) {
             $query->where(function($q) use ($request) {
@@ -357,11 +369,29 @@ class PlantController extends BaseController
             });
         }
 
+        // Sorting
+        $sortField = $request->sort_by ?? 'created_at';
+        $sortOrder = $request->sort_order ?? 'desc';
+        $query->orderBy($sortField, $sortOrder);
+
         $plants = $query->with(['reviews', 'seller', 'careGuide'])
-                        ->orderBy($request->sort_by ?? 'created_at', $request->sort_order ?? 'desc')
                         ->paginate(12);
 
-        return view('plants.catalog', compact('plants'));
+        // Get all filter options for the view
+        $categories = Plant::CATEGORIES;
+        $subCategories = Plant::SUB_CATEGORIES;
+        $careLevels = Plant::CARE_LEVELS;
+        $waterNeeds = Plant::WATER_NEEDS;
+        $lightNeeds = Plant::LIGHT_NEEDS;
+
+        return view('plants.catalog', compact(
+            'plants',
+            'categories',
+            'subCategories',
+            'careLevels',
+            'waterNeeds',
+            'lightNeeds'
+        ));
     }
 
     public function userDashboard()
