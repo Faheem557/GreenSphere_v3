@@ -31,7 +31,17 @@ class Plant extends Model
         'season',
         'toxicity',
         'delivery_options',
-        'growth_habit'
+        'growth_habit',
+        'soil_type',
+        'temperature_range',
+        'humidity_requirements',
+        'fertilizer_needs',
+        'blooming_season',
+        'mature_height',
+        'growth_rate',
+        'pet_friendly',
+        'maintenance_level',
+        'propagation_method'
     ];
 
     protected $casts = [
@@ -51,7 +61,31 @@ class Plant extends Model
         'vegetables' => 'Vegetables',
         'bonsai' => 'Bonsai Plants',
         'air_purifying' => 'Air Purifying Plants',
-        'tropical' => 'Tropical Plants'
+        'tropical' => 'Tropical Plants',
+        'cacti' => 'Cacti',
+        'aquatic' => 'Aquatic Plants',
+        'medicinal' => 'Medicinal Plants'
+    ];
+
+    public const SUB_CATEGORIES = [
+        'indoor' => [
+            'foliage' => 'Foliage Plants',
+            'hanging' => 'Hanging Plants',
+            'climbing' => 'Climbing Plants',
+            'palm' => 'Palm Plants'
+        ],
+        'outdoor' => [
+            'shrubs' => 'Shrubs',
+            'trees' => 'Trees',
+            'climbers' => 'Climbing Plants',
+            'groundcover' => 'Ground Cover Plants'
+        ],
+        'flowering' => [
+            'annual' => 'Annual Flowers',
+            'perennial' => 'Perennial Flowers',
+            'bulbs' => 'Flowering Bulbs',
+            'roses' => 'Roses'
+        ]
     ];
 
     public const CARE_LEVELS = [
@@ -77,6 +111,26 @@ class Plant extends Model
         'standard' => 'Standard Delivery (3-5 days)',
         'express' => 'Express Delivery (1-2 days)',
         'pickup' => 'Store Pickup'
+    ];
+
+    public const SOIL_TYPES = [
+        'well_draining' => 'Well-Draining Potting Mix',
+        'cactus_mix' => 'Cactus & Succulent Mix',
+        'peat_based' => 'Peat-Based Mix',
+        'loamy' => 'Loamy Soil',
+        'sandy' => 'Sandy Soil'
+    ];
+
+    public const GROWTH_RATES = [
+        'slow' => 'Slow Growing',
+        'moderate' => 'Moderate Growth',
+        'fast' => 'Fast Growing'
+    ];
+
+    public const MAINTENANCE_LEVELS = [
+        'low' => 'Low Maintenance',
+        'medium' => 'Medium Maintenance',
+        'high' => 'High Maintenance'
     ];
 
     public function reviews()

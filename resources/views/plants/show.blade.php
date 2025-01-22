@@ -60,6 +60,52 @@
         </div>
     </div>
 
+    <!-- After the existing plant details section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Detailed Care Information</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Growing Conditions</h5>
+                            <ul class="list-unstyled">
+                                <li><strong>Soil Type:</strong> {{ App\Models\Plant::SOIL_TYPES[$plant->soil_type] ?? 'Not specified' }}</li>
+                                <li><strong>Temperature:</strong> {{ $plant->temperature_range ?? 'Not specified' }}</li>
+                                <li><strong>Humidity:</strong> {{ $plant->humidity_requirements ?? 'Not specified' }}</li>
+                                <li><strong>Light Needs:</strong> {{ App\Models\Plant::LIGHT_NEEDS[$plant->light_needs] ?? 'Not specified' }}</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Growth Information</h5>
+                            <ul class="list-unstyled">
+                                <li><strong>Mature Height:</strong> {{ $plant->mature_height ?? 'Not specified' }}</li>
+                                <li><strong>Growth Rate:</strong> {{ App\Models\Plant::GROWTH_RATES[$plant->growth_rate] ?? 'Not specified' }}</li>
+                                <li><strong>Blooming Season:</strong> {{ $plant->blooming_season ?? 'Not specified' }}</li>
+                                <li><strong>Propagation:</strong> {{ $plant->propagation_method ?? 'Not specified' }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h5>Care Requirements</h5>
+                            <ul class="list-unstyled">
+                                <li><strong>Maintenance Level:</strong> {{ App\Models\Plant::MAINTENANCE_LEVELS[$plant->maintenance_level] ?? 'Not specified' }}</li>
+                                <li><strong>Water Needs:</strong> {{ App\Models\Plant::WATER_NEEDS[$plant->water_needs] ?? 'Not specified' }}</li>
+                                <li><strong>Fertilizer Needs:</strong> {{ $plant->fertilizer_needs ?? 'Not specified' }}</li>
+                                <li><strong>Pet Friendly:</strong> <span class="badge {{ $plant->pet_friendly ? 'bg-success' : 'bg-danger' }}">
+                                    {{ $plant->pet_friendly ? 'Yes' : 'No' }}</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Reviews Section -->
     <div class="card mt-4">
         <div class="card-header">

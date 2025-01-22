@@ -8,12 +8,12 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->string('phone')->nullable()->after('shipping_address');
-            $table->timestamp('delivery_date')->nullable()->after('phone');
-            $table->string('delivery_slot')->nullable()->after('delivery_date');
-            $table->text('delivery_instructions')->nullable()->after('delivery_slot');
-        });
+        // Schema::table('orders', function (Blueprint $table) {
+        //     // $table->string('phone')->nullable()->after('shipping_address');
+        //     $table->timestamp('delivery_date')->nullable()->after('phone');
+        //     $table->string('delivery_slot')->nullable()->after('delivery_date');
+        //     $table->text('delivery_instructions')->nullable()->after('delivery_slot');
+        // });
     }
 
     public function down()

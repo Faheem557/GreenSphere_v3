@@ -24,61 +24,103 @@
                         <h3 class="card-title">Filters</h3>
                     </div>
                     <div class="card-body">
-                        <!-- Categories -->
-                        <div class="custom-controls-stacked">
-                            <h4 class="mb-3">Categories</h4>
-                            @foreach(App\Models\Plant::CATEGORIES as $key => $category)
-                                <label class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input" name="categories[]" 
-                                           value="{{ $key }}" {{ in_array($key, request('categories', [])) ? 'checked' : '' }}>
-                                    <span class="custom-control-label">{{ $category }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-
-                        <!-- Care Level -->
-                        <div class="mt-4">
-                            <h4 class="mb-3">Care Level</h4>
-                            @foreach(App\Models\Plant::CARE_LEVELS as $key => $level)
-                                <label class="custom-control custom-radio">
-                                    <input type="radio" class="custom-control-input" name="care_level" 
-                                           value="{{ $key }}" {{ request('care_level') === $key ? 'checked' : '' }}>
-                                    <span class="custom-control-label">{{ $level }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-
-                        <!-- Price Range -->
-                        <div class="mt-4">
-                            <h4 class="mb-3">Price Range</h4>
-                            <div class="range-slider">
-                                <input type="range" class="form-range" id="minPrice" name="min_price" 
-                                       min="0" max="1000" value="{{ request('min_price', 0) }}">
-                                <input type="range" class="form-range" id="maxPrice" name="max_price" 
-                                       min="0" max="1000" value="{{ request('max_price', 1000) }}">
+                        <form id="filter-form" action="{{ route('plants.catalog') }}" method="GET">
+                            <!-- Categories -->
+                            <div class="custom-controls-stacked">
+                                <h4 class="mb-3">Categories</h4>
+                                @foreach($categories as $key => $category)
+                                    <label class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input filter-control" 
+                                               name="categories[]" value="{{ $key }}" 
+                                               {{ in_array($key, request('categories', [])) ? 'checked' : '' }}>
+                                        <span class="custom-control-label">{{ $category }}</span>
+                                    </label>
+                                @endforeach
                             </div>
-                            <div class="d-flex justify-content-between">
-                                <span>₹<span id="minPriceValue">{{ request('min_price', 0) }}</span></span>
-                                <span>₹<span id="maxPriceValue">{{ request('max_price', 1000) }}</span></span>
+
+                            <!-- Sub Categories (Dynamic based on selected category) -->
+                            <div class="mt-4" id="subCategoriesContainer" style="display: none;">
+                                <h4 class="mb-3">Sub Categories</h4>
+                                <div id="subCategoriesContent">
+                                    <!-- Populated via JavaScript -->
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Delivery Options -->
-                        <div class="mt-4">
-                            <h4 class="mb-3">Delivery Options</h4>
-                            @foreach(App\Models\Plant::DELIVERY_OPTIONS as $key => $option)
-                                <label class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input" name="delivery_options[]" 
-                                           value="{{ $key }}" {{ in_array($key, request('delivery_options', [])) ? 'checked' : '' }}>
-                                    <span class="custom-control-label">{{ $option }}</span>
-                                </label>
-                            @endforeach
-                        </div>
+                            <!-- Care Level -->
+                            <div class="mt-4">
+                                <h4 class="mb-3">Care Level</h4>
+                                @foreach($careLevels as $key => $level)
+                                    <label class="custom-control custom-radio">
+                                        <input type="radio" class="custom-control-input filter-control" 
+                                               name="care_level" value="{{ $key }}" 
+                                               {{ request('care_level') == $key ? 'checked' : '' }}>
+                                        <span class="custom-control-label">{{ $level }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
 
-                        <!-- Apply Filters Button -->
-                        <div class="mt-4">
-                            <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
-                        </div>
+                            <!-- Water Needs -->
+                            <div class="mt-4">
+                                <h4 class="mb-3">Water Needs</h4>
+                                @foreach($waterNeeds as $key => $need)
+                                    <label class="custom-control custom-radio">
+                                        <input type="radio" class="custom-control-input filter-control" 
+                                               name="water_needs" value="{{ $key }}" 
+                                               {{ request('water_needs') == $key ? 'checked' : '' }}>
+                                        <span class="custom-control-label">{{ $need }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+
+                            <!-- Light Needs -->
+                            <div class="mt-4">
+                                <h4 class="mb-3">Light Requirements</h4>
+                                @foreach($lightNeeds as $key => $need)
+                                    <label class="custom-control custom-radio">
+                                        <input type="radio" class="custom-control-input filter-control" 
+                                               name="light_needs" value="{{ $key }}" 
+                                               {{ request('light_needs') == $key ? 'checked' : '' }}>
+                                        <span class="custom-control-label">{{ $need }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+
+                            <!-- Price Range -->
+                            <div class="mt-4">
+                                <h4 class="mb-3">Price Range</h4>
+                                <div class="range-slider">
+                                    <input type="range" class="form-range filter-control" id="minPrice" 
+                                           name="min_price" min="0" max="1000" 
+                                           value="{{ request('min_price', 0) }}">
+                                    <input type="range" class="form-range filter-control" id="maxPrice" 
+                                           name="max_price" min="0" max="1000" 
+                                           value="{{ request('max_price', 1000) }}">
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>₹<span id="minPriceValue">{{ request('min_price', 0) }}</span></span>
+                                    <span>₹<span id="maxPriceValue">{{ request('max_price', 1000) }}</span></span>
+                                </div>
+                            </div>
+
+                            <!-- Sort Options -->
+                            <div class="mt-4">
+                                <h4 class="mb-3">Sort By</h4>
+                                <select name="sort_by" id="sort-select" class="form-select filter-control">
+                                    <option value="created_at" {{ request('sort_by') == 'created_at' ? 'selected' : '' }}>Newest First</option>
+                                    <option value="price" {{ request('sort_by') == 'price' ? 'selected' : '' }}>Price</option>
+                                    <option value="name" {{ request('sort_by') == 'name' ? 'selected' : '' }}>Name</option>
+                                </select>
+                                <select name="sort_order" class="form-select mt-2 filter-control">
+                                    <option value="desc" {{ request('sort_order') == 'desc' ? 'selected' : '' }}>Descending</option>
+                                    <option value="asc" {{ request('sort_order') == 'asc' ? 'selected' : '' }}>Ascending</option>
+                                </select>
+                            </div>
+
+                            <!-- Apply Filters Button -->
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
