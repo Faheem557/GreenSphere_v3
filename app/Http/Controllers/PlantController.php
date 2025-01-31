@@ -134,7 +134,7 @@ class PlantController extends BaseController
     {
         try {
             $request->validate([
-                'quantity' => 'required|integer|min:1'
+                'quantity' => 'required|integer|min:0'
             ]);
 
             $plant->update(['quantity' => $request->quantity]);
@@ -251,7 +251,7 @@ class PlantController extends BaseController
 
     public function create()
     {
-        return view('seller.addPlants');
+        return view('seller.addPlants');                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
     }
 
     public function addToCart(Plant $plant, Request $request)

@@ -25,9 +25,9 @@
 <script src="{{ URL::asset('assets/plugins/sidebar/sidebar.js') }}"></script>
 
 <!-- Perfect SCROLLBAR JS-->
-<script src="{{ URL::asset('assets/plugins/p-scroll/perfect-scrollbar.js') }}"></script>
-<script src="{{ URL::asset('assets/plugins/p-scroll/pscroll.js') }}"></script>
-<script src="{{ URL::asset('assets/plugins/p-scroll/pscroll-1.js') }}"></script>
+<!--<script src="{{ URL::asset('assets/plugins/p-scroll/perfect-scrollbar.js') }}"></script>-->
+<!--<script src="{{ URL::asset('assets/plugins/p-scroll/pscroll.js') }}"></script>-->
+<!--<script src="{{ URL::asset('assets/plugins/p-scroll/pscroll-1.js') }}"></script>-->
 
 <!-- INTERNAL CHARTJS CHART JS-->
 <script src="{{ URL::asset('assets/plugins/chart/Chart.bundle.js') }}"></script>
@@ -36,10 +36,20 @@
 <!-- INTERNAL SELECT2 JS -->
 <script src="{{ URL::asset('assets/plugins/select2/select2.full.min.js') }}"></script>
 
-<!-- INTERNAL Data tables js-->
+<!-- DATA TABLE JS-->
 <script src="{{ URL::asset('assets/plugins/datatable/js/jquery.dataTables.min.js') }}"></script>
 <script src="{{ URL::asset('assets/plugins/datatable/js/dataTables.bootstrap5.js') }}"></script>
+<script src="{{ URL::asset('assets/plugins/datatable/js/dataTables.buttons.min.js') }}"></script>
+<script src="{{ URL::asset('assets/plugins/datatable/js/buttons.bootstrap5.min.js') }}"></script>
+<script src="{{ URL::asset('assets/plugins/datatable/js/jszip.min.js') }}"></script>
+<script src="{{ URL::asset('assets/plugins/datatable/pdfmake/pdfmake.min.js') }}"></script>
+<script src="{{ URL::asset('assets/plugins/datatable/pdfmake/vfs_fonts.js') }}"></script>
+<script src="{{ URL::asset('assets/plugins/datatable/js/buttons.html5.min.js') }}"></script>
+<script src="{{ URL::asset('assets/plugins/datatable/js/buttons.print.min.js') }}"></script>
+<script src="{{ URL::asset('assets/plugins/datatable/js/buttons.colVis.min.js') }}"></script>
 <script src="{{ URL::asset('assets/plugins/datatable/dataTables.responsive.min.js') }}"></script>
+<script src="{{ URL::asset('assets/plugins/datatable/responsive.bootstrap5.min.js') }}"></script>
+<script src="{{ URL::asset('assets/js/table-data.js') }}"></script>
 
 <!-- INTERNAL APEXCHART JS -->
 <script src="{{ URL::asset('assets/js/apexcharts.js') }}"></script>
@@ -63,7 +73,7 @@
 <script src="{{ URL::asset('assets/js/typehead.js') }}"></script>
 
 <!-- INTERNAL INDEX JS -->
-<script src="{{ URL::asset('assets/js/index1.js') }}"></script>
+<!--<script src="{{ URL::asset('assets/js/index1.js') }}"></script>-->
 
 <!-- Color Theme js -->
 <script src="{{ URL::asset('assets/js/themeColors.js') }}"></script>
@@ -75,23 +85,7 @@
 <script src="{{ URL::asset('assets/js/custom-swicher.js') }}"></script>
 
 <!-- Switcher js -->
-<script src="{{ URL::asset('assets/switcher/js/switcher.js') }}"></script>
-<!-- DATA TABLE JS-->
-<script src="../assets/plugins/datatable/js/jquery.dataTables.min.js"></script>
-<script src="../assets/plugins/datatable/js/dataTables.bootstrap5.js"></script>
-<script src="../assets/plugins/datatable/js/dataTables.buttons.min.js"></script>
-<script src="../assets/plugins/datatable/js/buttons.bootstrap5.min.js"></script>
-<script src="../assets/plugins/datatable/js/jszip.min.js"></script>
-<script src="../assets/plugins/datatable/pdfmake/pdfmake.min.js"></script>
-<script src="../assets/plugins/datatable/pdfmake/vfs_fonts.js"></script>
-<script src="../assets/plugins/datatable/js/buttons.html5.min.js"></script>
-<script src="../assets/plugins/datatable/js/buttons.print.min.js"></script>
-<script src="../assets/plugins/datatable/js/buttons.colVis.min.js"></script>
-<script src="../assets/plugins/datatable/dataTables.responsive.min.js"></script>
-<script src="../assets/plugins/datatable/responsive.bootstrap5.min.js"></script>
-<script src="../assets/js/table-data.js"></script>
+<!--<script src="{{ URL::asset('assets/switcher/js/switcher.js') }}"></script>-->
+
 @yield('spasific-scripts')
-
-
-
 @yield('page-wise-scripts')

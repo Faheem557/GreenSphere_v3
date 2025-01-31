@@ -101,12 +101,12 @@ use Illuminate\Support\Facades\Schema;
 
                             <!-- User Profile -->
                             <div class="dropdown d-flex profile-1">
-                                <a href="javascript:void(0)" data-bs-toggle="dropdown" class="nav-link leading-none d-flex">
+                                <a href="javascript:void(0)" data-bs-toggle="dropdown" class="nav-link leading-none d-flex" aria-expanded="false">
                                     <img src="{{ auth()->user()->profile_photo_url ?? URL::asset('assets/images/users/default.jpg') }}"
                                         alt="profile-user"
                                         class="avatar profile-user brround cover-image">
                                 </a>
-                                <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow" data-bs-popper="none">
                                     <div class="drop-heading">
                                         <div class="text-center">
                                             <h5 class="text-dark mb-0 fs-14 fw-semibold">{{ auth()->user()->name }}</h5>
@@ -114,18 +114,15 @@ use Illuminate\Support\Facades\Schema;
                                         </div>
                                     </div>
                                     <div class="dropdown-divider m-0"></div>
-
-                                    <!-- Profile Management -->
                                     <a class="dropdown-item" href="{{ route('profile.edit') }}">
                                         <i class="dropdown-icon fe fe-user"></i> Profile
                                     </a>
-
-                                    <!-- Authentication -->
+                                    
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
                                         <a class="dropdown-item" href="{{ route('logout') }}"
                                             onclick="event.preventDefault(); this.closest('form').submit();">
-                                            <i class="dropdown-icon fe fe-log-out"></i> Sign out
+                                            <i class="dropdown-icon fe fe-alert-circle"></i> Sign out
                                         </a>
                                     </form>
                                 </div>
@@ -165,6 +162,19 @@ use Illuminate\Support\Facades\Schema;
     const channel = pusher.subscribe('cart-channel');
     channel.bind('cart-updated', function(data) {
         updateCartCount(data.count);
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize all dropdowns
+        var dropdownElementList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'))
+        var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+            return new bootstrap.Dropdown(dropdownToggleEl)
+        });
+
+        // Ensure Bootstrap is loaded
+        if (typeof bootstrap === 'undefined') {
+            console.error('Bootstrap is not loaded');
+        }
     });
 </script>
 @endpush
