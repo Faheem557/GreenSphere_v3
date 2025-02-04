@@ -50,14 +50,10 @@ use Illuminate\Support\Facades\Schema;
                             <div class="dropdown d-flex">
                                 <a class="nav-link icon text-center" href="{{ route('seller.orders.index') }}">
                                     <i class="fe fe-shopping-bag"></i>
-                                    @php
-                                    $pendingOrdersCount = auth()->user()->orders()
-                                    ->where('status', 'pending')
-                                    ->where('is_read', false)
-                                    ->count();
-                                    @endphp
-                                    @if($pendingOrdersCount > 0)
-                                    <span class="badge bg-warning header-badge">{{ $pendingOrdersCount }}</span>
+                                    @if(auth()->user()->unread_pending_orders_count > 0)
+                                        <span class="badge bg-warning header-badge">
+                                            {{ auth()->user()->unread_pending_orders_count }}
+                                        </span>
                                     @endif
                                 </a>
                             </div>
@@ -138,43 +134,40 @@ use Illuminate\Support\Facades\Schema;
 
 @push('scripts')
 <script>
-    // Function to update cart count
-    function updateCartCount(count) {
-        const cartBadge = $('.cart-count');
-        if (count > 0) {
-            if (cartBadge.length) {
-                cartBadge.text(count);
+    $(document).ready(function() {
+        @role('seller')
+        // Initialize Pusher
+        const pusher = new Pusher('{{ config('broadcasting.connections.pusher.key') }}', {
+            cluster: '{{ config('broadcasting.connections.pusher.options.cluster') }}'
+        });
+
+        // Subscribe to seller's channel
+        const channel = pusher.subscribe('seller-{{ auth()->id() }}');
+        
+        // Listen for new orders
+        channel.bind('App\\Events\\NewOrderPlaced', function(data) {
+            console.log('New order received:', data); // Debug log
+            
+            // Update the order badge count
+            const badge = $('.header-badge');
+            if (data.unread_count > 0) {
+                if (badge.length) {
+                    badge.text(data.unread_count);
+                } else {
+                    $('.fe-shopping-bag').after(`<span class="badge bg-warning header-badge">${data.unread_count}</span>`);
+                }
+                
+                // Show notification
+                toastr.success('New order received!', 'Order Update');
+                
+                // Play notification sound if you have one
+                const audio = new Audio('/notification.mp3');
+                audio.play();
             } else {
-                $('.fe-shopping-cart').after(`<span class="badge bg-primary header-badge cart-count">${count}</span>`);
+                badge.remove();
             }
-        } else {
-            cartBadge.remove();
-        }
-    }
-
-    // Listen for cart updates via Pusher
-    const pusher = new Pusher('{{ config('
-        broadcasting.connections.pusher.key ') }}', {
-            cluster: '{{ config('
-            broadcasting.connections.pusher.options.cluster ') }}'
         });
-
-    const channel = pusher.subscribe('cart-channel');
-    channel.bind('cart-updated', function(data) {
-        updateCartCount(data.count);
-    });
-
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize all dropdowns
-        var dropdownElementList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'))
-        var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
-            return new bootstrap.Dropdown(dropdownToggleEl)
-        });
-
-        // Ensure Bootstrap is loaded
-        if (typeof bootstrap === 'undefined') {
-            console.error('Bootstrap is not loaded');
-        }
+        @endrole
     });
 </script>
 @endpush

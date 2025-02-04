@@ -52,6 +52,8 @@ class User extends Authenticatable
         ];
     }
 
+    protected $appends = ['unread_pending_orders_count'];
+
     public function orders()
     {
         return $this->hasMany(Order::class, 'seller_id');
@@ -66,8 +68,8 @@ class User extends Authenticatable
     {
         if ($this->hasRole('seller')) {
             return $this->orders()
-                ->pending()
-                ->unread()
+                ->where('status', 'pending')
+                ->where('is_read', false)
                 ->count();
         }
         return 0;
