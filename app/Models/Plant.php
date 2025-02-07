@@ -157,4 +157,9 @@ class Plant extends Model
     {
         return $this->reviews()->avg('rating') ?? 0;
     }
+
+    public function orders()
+    {
+        return $this->belongsToMany(Order::class, 'order_plant');
+    }
 } 

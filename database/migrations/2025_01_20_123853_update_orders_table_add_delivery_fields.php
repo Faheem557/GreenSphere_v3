@@ -12,10 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            // $table->string('phone')->nullable()->after('shipping_address');
-            // $table->timestamp('delivery_date')->nullable()->after('phone');
-            // $table->string('delivery_slot')->nullable()->after('delivery_date');
-            // $table->text('delivery_instructions')->nullable()->after('delivery_slot');
+            $table->string('phone')->nullable()->after('country');
+            $table->timestamp('delivery_date')->nullable()->after('phone');
+            $table->string('delivery_slot')->nullable()->after('delivery_date');
         });
     }
 
@@ -25,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->dropColumn(['phone', 'delivery_date', 'delivery_slot', 'delivery_instructions']);
+            $table->dropColumn(['phone', 'delivery_date', 'delivery_slot']);
         });
     }
 };

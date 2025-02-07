@@ -164,6 +164,7 @@ Route::get('/orders/{order}/status', [OrderController::class, 'status'])->name('
 Route::middleware(['auth'])->group(function () {
     // ... existing routes ...
     Route::get('/orders/{order}/track', 'OrderController@track')->name('orders.track');
+    Route::get('/my-plants', [PlantController::class, 'myPlants'])->name('plants.my-plants');
 });
 
 Route::get('/test-storage', function() {

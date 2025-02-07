@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use App\Models\Order;
+use App\Models\Plant;
 
 class User extends Authenticatable
 {
@@ -56,7 +57,12 @@ class User extends Authenticatable
 
     public function orders()
     {
-        return $this->hasMany(Order::class, 'seller_id');
+        return $this->hasMany(Order::class);
+    }
+
+    public function plants()
+    {
+        return $this->hasManyThrough(Plant::class, Order::class);
     }
 
     public function purchases()
