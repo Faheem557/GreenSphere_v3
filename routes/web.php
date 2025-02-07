@@ -1,19 +1,20 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\PlantController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\CartController;
-use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\SellerOrderController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PlantController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SellerOrderController;
 
 // Public routes
 Route::get('/', function () {
     // If user is authenticated, redirect to their appropriate dashboard
-    if (auth()->check()) {
-        if (auth()->user()->hasRole('seller')) {
+    if (Auth::check()) {
+        if (Auth::user()->hasRole('seller')) {
             return redirect()->route('seller.dashboard');
         } elseif (auth()->user()->hasRole('user')) {
             return redirect()->route('user.dashboard');

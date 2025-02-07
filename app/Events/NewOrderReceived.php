@@ -4,12 +4,12 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Order;
 
-class NewOrderReceived implements ShouldBroadcast
+class NewOrderReceived implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -30,8 +30,9 @@ class NewOrderReceived implements ShouldBroadcast
     {
         return [
             'order_id' => $this->order->id,
-            'buyer_name' => $this->order->buyer->name,
+            'buyer_name' => $this->order->buyer->name ?? 'Guest',
             'total_amount' => $this->order->total_amount,
+            'unread_count' => $this->order->seller->orders()->where('is_read', false)->count(),
         ];
     }
-} 
+}

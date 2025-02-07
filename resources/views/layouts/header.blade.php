@@ -135,40 +135,38 @@ use Illuminate\Support\Facades\Schema;
 @push('scripts')
 <script>
     $(document).ready(function() {
-        @role('seller')
-        // Initialize Pusher
-        const pusher = new Pusher('{{ config('broadcasting.connections.pusher.key') }}', {
-            cluster: '{{ config('broadcasting.connections.pusher.options.cluster') }}'
-        });
-
-        // Subscribe to seller's channel
-        const channel = pusher.subscribe('seller-{{ auth()->id() }}');
-        
-        // Listen for new orders
-        channel.bind('App\\Events\\NewOrderPlaced', function(data) {
-            console.log('New order received:', data); // Debug log
-            
-            // Update the order badge count
-            const badge = $('.header-badge');
-            if (data.unread_count > 0) {
-                if (badge.length) {
-                    badge.text(data.unread_count);
-                } else {
-                    $('.fe-shopping-bag').after(`<span class="badge bg-warning header-badge">${data.unread_count}</span>`);
-                }
-                
-                // Show notification
-                toastr.success('New order received!', 'Order Update');
-                
-                // Play notification sound if you have one
-                const audio = new Audio('/notification.mp3');
-                audio.play();
-            } else {
-                badge.remove();
-            }
-        });
-        @endrole
+    @role('seller')
+    
+    const pusher = new Pusher('{{ config('broadcasting.connections.pusher.key') }}', {
+        cluster: '{{ config('broadcasting.connections.pusher.options.cluster') }}'
     });
+
+    const channel = pusher.subscribe('seller-{{ auth()->id() }}');
+
+    channel.bind('NewOrderReceived', function(data) {
+        console.clear();
+        console.log('New order received:', data);
+
+        const badge = $('.header-badge');
+        if (data.unread_count > 0) {
+            if (badge.length) {
+                badge.text(data.unread_count);
+            } else {
+                $('.fe-shopping-bag').after(`<span class="badge bg-warning header-badge">${data.unread_count}</span>`);
+            }
+
+            toastr.success(`New order from ${data.buyer_name}!`, 'Order Update');
+
+            const audio = new Audio('/notification.mp3');
+            audio.play();
+        } else {
+            badge.remove();
+        }
+    });
+
+    @endrole
+});
+
 </script>
 @endpush
 
