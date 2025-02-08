@@ -1,116 +1,144 @@
-@extends('layouts.main')
+@extends('layouts.app')
 
-@section('title')
-    Edit Profile
-@endsection
-
-@section('maincontent')
-<div class="main-container container-fluid">
-    <div class="page-header">
-        <h1 class="page-title">Edit Profile</h1>
-    </div>
-
-    @if(session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    <div class="card">
-        <div class="card-body">
-            <form action="{{ route('profile.update') }}" method="POST">
-                @csrf
-                @method('PUT')
-
-                <div class="form-group mb-3">
-                    <label class="form-label">Name</label>
-                    <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" 
-                           value="{{ old('name', $user->name) }}" required>
-                    @error('name')
-                        <span class="invalid-feedback">{{ $message }}</span>
-                    @enderror
+@section('content')
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Edit Profile</h4>
                 </div>
-
-                <div class="form-group mb-3">
-                    <label class="form-label">Email</label>
-                    <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
-                           value="{{ old('email', $user->email) }}" required>
-                    @error('email')
-                        <span class="invalid-feedback">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div class="form-group mb-3">
-                    <label class="form-label">Address</label>
-                    <input type="text" name="location[address]" class="form-control @error('location.address') is-invalid @enderror" 
-                           value="{{ old('location.address', $user->location['address'] ?? '') }}" required>
-                    @error('location.address')
-                        <span class="invalid-feedback">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group mb-3">
-                            <label class="form-label">City</label>
-                            <input type="text" name="location[city]" class="form-control @error('location.city') is-invalid @enderror" 
-                                   value="{{ old('location.city', $user->location['city'] ?? '') }}" required>
-                            @error('location.city')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
+                <div class="card-body">
+                    <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        @method('PUT')
+                        
+                        <!-- Basic Information -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ old('name', $user->name) }}">
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group mb-3">
-                            <label class="form-label">State</label>
-                            <input type="text" name="location[state]" class="form-control @error('location.state') is-invalid @enderror" 
-                                   value="{{ old('location.state', $user->location['state'] ?? '') }}" required>
-                            @error('location.state')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ old('email', $user->email) }}">
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group mb-3">
-                            <label class="form-label">ZIP Code</label>
-                            <input type="text" name="location[zip]" class="form-control @error('location.zip') is-invalid @enderror" 
-                                   value="{{ old('location.zip', $user->location['zip'] ?? '') }}" required>
-                            @error('location.zip')
-                                <span class="invalid-feedback">{{ $message }}</span>
-                            @enderror
+
+                        <!-- Gardening Level -->
+                        <div class="mb-3">
+                            <label for="gardening_level" class="form-label">Gardening Experience Level</label>
+                            <select class="form-select" id="gardening_level" name="gardening_level">
+                                <option value="beginner" {{ $user->profile->gardening_level === 'beginner' ? 'selected' : '' }}>Beginner</option>
+                                <option value="intermediate" {{ $user->profile->gardening_level === 'intermediate' ? 'selected' : '' }}>Intermediate</option>
+                                <option value="advanced" {{ $user->profile->gardening_level === 'advanced' ? 'selected' : '' }}>Advanced</option>
+                            </select>
                         </div>
-                    </div>
-                </div>
 
-                <hr>
+                        <!-- Plant Preferences -->
+                        <div class="mb-3">
+                            <label class="form-label">Plant Preferences</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="plant_preferences[]" value="indoor" 
+                                            {{ in_array('indoor', $user->profile->plant_preferences ?? []) ? 'checked' : '' }}>
+                                        <label class="form-check-label">Indoor Plants</label>
+                                    </div>
+                                </div>
+                                <!-- Add more plant preferences -->
+                            </div>
+                        </div>
 
-                <h4>Change Password</h4>
-                <div class="form-group mb-3">
-                    <label class="form-label">Current Password</label>
-                    <input type="password" name="current_password" class="form-control @error('current_password') is-invalid @enderror">
-                    @error('current_password')
-                        <span class="invalid-feedback">{{ $message }}</span>
-                    @enderror
-                </div>
+                        <!-- Location -->
+                        <div class="mb-3">
+                            <label class="form-label">Location</label>
+                            <div id="map" style="height: 300px;" class="mb-3"></div>
+                            <input type="hidden" name="location[latitude]" id="latitude">
+                            <input type="hidden" name="location[longitude]" id="longitude">
+                            <input type="text" class="form-control mb-2" name="location[address]" placeholder="Address" 
+                                value="{{ $user->profile->location_data['address'] ?? '' }}">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" name="location[city]" placeholder="City" 
+                                        value="{{ $user->profile->location_data['city'] ?? '' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" name="location[state]" placeholder="State" 
+                                        value="{{ $user->profile->location_data['state'] ?? '' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" name="location[zip]" placeholder="ZIP" 
+                                        value="{{ $user->profile->location_data['zip'] ?? '' }}">
+                                </div>
+                            </div>
+                        </div>
 
-                <div class="form-group mb-3">
-                    <label class="form-label">New Password</label>
-                    <input type="password" name="new_password" class="form-control @error('new_password') is-invalid @enderror">
-                    @error('new_password')
-                        <span class="invalid-feedback">{{ $message }}</span>
-                    @enderror
-                </div>
+                        <!-- Notification Preferences -->
+                        <div class="mb-3">
+                            <label class="form-label">Notification Preferences</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="notification_preferences[email]" 
+                                    {{ ($user->profile->notification_preferences['email'] ?? false) ? 'checked' : '' }}>
+                                <label class="form-check-label">Email Notifications</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="notification_preferences[push]" 
+                                    {{ ($user->profile->notification_preferences['push'] ?? false) ? 'checked' : '' }}>
+                                <label class="form-check-label">Push Notifications</label>
+                            </div>
+                        </div>
 
-                <div class="form-group mb-3">
-                    <label class="form-label">Confirm New Password</label>
-                    <input type="password" name="new_password_confirmation" class="form-control">
+                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                    </form>
                 </div>
-
-                <div class="form-group">
-                    <button type="submit" class="btn btn-primary">Update Profile</button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places"></script>
+<script>
+    // Initialize map
+    function initMap() {
+        const map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 13,
+            center: { 
+                lat: {{ $user->profile->location_data['latitude'] ?? 0 }}, 
+                lng: {{ $user->profile->location_data['longitude'] ?? 0 }} 
+            }
+        });
+
+        const marker = new google.maps.Marker({
+            map: map,
+            draggable: true
+        });
+
+        // Update coordinates when marker is dragged
+        marker.addListener('dragend', function() {
+            const position = marker.getPosition();
+            document.getElementById('latitude').value = position.lat();
+            document.getElementById('longitude').value = position.lng();
+        });
+
+        // Initialize Places Autocomplete
+        const input = document.querySelector('input[name="location[address]"]');
+        const autocomplete = new google.maps.places.Autocomplete(input);
+
+        autocomplete.addListener('place_changed', function() {
+            const place = autocomplete.getPlace();
+            if (place.geometry) {
+                map.setCenter(place.geometry.location);
+                marker.setPosition(place.geometry.location);
+                
+                document.getElementById('latitude').value = place.geometry.location.lat();
+                document.getElementById('longitude').value = place.geometry.location.lng();
+            }
+        });
+    }
+
+    // Load map when page is ready
+    document.addEventListener('DOMContentLoaded', initMap);
+</script>
+@endpush
 @endsection

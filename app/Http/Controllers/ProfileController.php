@@ -6,49 +6,82 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Http\Requests\UpdateProfileRequest;
 
 class ProfileController extends Controller
 {
     public function edit()
     {
-        return view('profile.edit', ['user' => Auth::user()]);
+        $user = Auth::user()->load('profile');
+        return view('profile.edit', compact('user'));
     }
 
-    public function update(Request $request)
+    public function updateProfile(UpdateProfileRequest $request)
     {
         $user = Auth::user();
-        
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'current_password' => 'nullable|required_with:new_password',
-            'new_password' => 'nullable|min:8|confirmed',
-            'location.address' => 'required|string',
-            'location.city' => 'required|string',
-            'location.state' => 'required|string',
-            'location.zip' => 'required|string'
-        ]);
+        $profile = $user->profile;
 
         // Update basic info
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->location = [
-            'address' => $request->input('location.address'),
-            'city' => $request->input('location.city'),
-            'state' => $request->input('location.state'),
-            'zip' => $request->input('location.zip')
-        ];
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
 
-        // Update password if provided
-        if ($request->filled('current_password')) {
-            if (!Hash::check($request->current_password, $user->password)) {
-                return back()->withErrors(['current_password' => 'The provided password does not match your current password.']);
-            }
-            $user->password = Hash::make($request->new_password);
+        // Update profile
+        $profile->update([
+            'bio' => $request->bio,
+            'phone_number' => $request->phone_number,
+            'gardening_level' => $request->gardening_level,
+            'plant_preferences' => $request->plant_preferences,
+        ]);
+
+        // Update location if provided
+        if ($request->has('location')) {
+            $profile->update([
+                'location_data' => [
+                    'address' => $request->location['address'],
+                    'city' => $request->location['city'],
+                    'state' => $request->location['state'],
+                    'zip' => $request->location['zip'],
+                    'latitude' => $request->location['latitude'],
+                    'longitude' => $request->location['longitude'],
+                ]
+            ]);
         }
 
-        $user->save();
+        return redirect()->back()->with('success', 'Profile updated successfully');
+    }
 
-        return back()->with('success', 'Profile updated successfully.');
+    public function updateNotificationPreferences(Request $request)
+    {
+        $user = Auth::user();
+        $profile = $user->profile;
+
+        $profile->update([
+            'notification_preferences' => $request->preferences
+        ]);
+
+        return response()->json(['message' => 'Notification preferences updated']);
+    }
+
+    public function updateLocation(Request $request)
+    {
+        $validated = $request->validate([
+            'address' => 'required|string',
+            'city' => 'required|string',
+            'state' => 'required|string',
+            'zip' => 'required|string',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+        ]);
+
+        $user = Auth::user();
+        $profile = $user->profile;
+
+        $profile->update([
+            'location_data' => $validated
+        ]);
+
+        return response()->json(['message' => 'Location updated successfully']);
     }
 }

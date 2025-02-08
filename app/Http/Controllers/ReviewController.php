@@ -35,6 +35,7 @@ class ReviewController extends Controller
                 $path = $image->store('reviews', 'public');
                 $review->images()->create(['path' => $path]);
             }
+
         }
 
         return back()->with('success', 'Review added successfully!');

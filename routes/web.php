@@ -112,6 +112,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/notifications', [ProfileController::class, 'updateNotificationPreferences'])
+         ->name('profile.notifications.update');
+    Route::put('/profile/location', [ProfileController::class, 'updateLocation'])
+         ->name('profile.location.update');
 });
 
 // Plant Catalog Routes

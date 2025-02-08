@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use App\Models\Order;
+use App\Models\UserProfile;
 
 class User extends Authenticatable
 {
@@ -79,4 +80,25 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'location' => 'json',
     ];
+
+    public function profile()
+    {
+        return $this->hasOne(UserProfile::class);
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::created(function ($user) {
+            $user->profile()->create([
+                'gardening_level' => 'beginner',
+                'notification_preferences' => [
+                    'email' => true,
+                    'push' => true,
+                    'sms' => false
+                ]
+            ]);
+        });
+    }
 }
