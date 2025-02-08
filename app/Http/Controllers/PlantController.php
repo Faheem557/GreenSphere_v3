@@ -313,85 +313,36 @@ class PlantController extends BaseController
 
     public function catalog(Request $request)
     {
-        $query = Plant::where('is_active', true);
+        $query = Plant::query()->where('is_active', true);
 
-        // Main category filter
-        if ($request->has('categories')) {
-            $query->whereIn('category', $request->categories);
-        }
-
-        // Sub-category filter
-        if ($request->sub_category) {
-            $query->where('sub_category', $request->sub_category);
-        }
-
-        // Care level filter
-        if ($request->care_level) {
-            $query->where('care_level', $request->care_level);
-        }
-
-        // Price range filter
-        if ($request->min_price) {
-            $query->where('price', '>=', $request->min_price);
-        }
-        if ($request->max_price) {
-            $query->where('price', '<=', $request->max_price);
-        }
-
-        // Water needs filter
-        if ($request->water_needs) {
-            $query->where('water_needs', $request->water_needs);
-        }
-
-        // Light needs filter
-        if ($request->light_needs) {
-            $query->where('light_needs', $request->light_needs);
-        }
-
-        // Season filter
-        if ($request->season) {
-            $query->where('season', $request->season);
-        }
-
-        // Height filter
-        if ($request->min_height) {
-            $query->where('height', '>=', $request->min_height);
-        }
-        if ($request->max_height) {
-            $query->where('height', '<=', $request->max_height);
-        }
-
-        // Search by name or description
-        if ($request->search) {
-            $query->where(function($q) use ($request) {
-                $q->where('name', 'like', "%{$request->search}%")
-                  ->orWhere('description', 'like', "%{$request->search}%");
+        // Handle search
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
-        // Sorting
-        $sortField = $request->sort_by ?? 'created_at';
-        $sortOrder = $request->sort_order ?? 'desc';
-        $query->orderBy($sortField, $sortOrder);
+        // Handle sorting
+        $sort = $request->get('sort', 'name_asc');
+        switch ($sort) {
+            case 'name_desc':
+                $query->orderBy('name', 'desc');
+                break;
+            case 'price_asc':
+                $query->orderBy('price', 'asc');
+                break;
+            case 'price_desc':
+                $query->orderBy('price', 'desc');
+                break;
+            default:
+                $query->orderBy('name', 'asc');
+        }
 
-        $plants = $query->with(['reviews', 'seller', 'careGuide'])
-                        ->paginate(12);
-
-        // Get all filter options for the view
-        $categories = Plant::CATEGORIES;
-        $subCategories = Plant::SUB_CATEGORIES;
-        $careLevels = Plant::CARE_LEVELS;
-        $waterNeeds = Plant::WATER_NEEDS;
-        $lightNeeds = Plant::LIGHT_NEEDS;
-
-        return view('plants.catalog', compact(
-            'plants',
-            'categories',
-            'subCategories',
-            'careLevels',
-            'waterNeeds',
-            'lightNeeds'
-        ));
+        $plants = $query->paginate(12);
+        
+        return view('plants.catalog', compact('plants'));
     }
 
     public function userDashboard()
@@ -414,5 +365,17 @@ class PlantController extends BaseController
         ];
 
         return view('user.home', compact('stats'));
+    }
+
+    public function myPlants()
+    {
+        $plants = Auth::user()->orders()
+            ->with('plants')
+            ->get()
+            ->pluck('plants')
+            ->flatten()
+            ->unique('id');
+            
+        return view('plants.my-plants', compact('plants'));
     }
 } 
