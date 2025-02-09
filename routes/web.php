@@ -106,6 +106,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/reviews/{review}/reply', 'reply')->name('reviews.reply');
         });
     });
+
+    // Review Routes
+    Route::controller(ReviewController::class)->group(function () {
+        Route::post('/plants/{plant}/reviews', 'store')->name('reviews.store');
+    });
 });
 
 // Profile Routes

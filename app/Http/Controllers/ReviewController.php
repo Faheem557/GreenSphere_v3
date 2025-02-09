@@ -5,9 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Review;
 use App\Models\Plant;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Routing\Controller as BaseController;
 
-class ReviewController extends Controller
+class ReviewController extends BaseController
 {
+    use AuthorizesRequests, ValidatesRequests;
+
     public function __construct()
     {
         $this->middleware('auth');

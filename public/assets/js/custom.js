@@ -287,6 +287,34 @@ if (!document.querySelector('.login-img')) {
     document.getElementById("year").innerHTML = new Date().getFullYear();
 }
 
+// Star Rating Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const ratingStars = document.querySelector('.rating-stars');
+    if (ratingStars) {
+        const stars = ratingStars.querySelectorAll('label');
+        
+        stars.forEach(star => {
+            star.addEventListener('mouseover', function() {
+                const rating = this.previousElementSibling.value;
+                highlightStars(rating);
+            });
+        });
+
+        ratingStars.addEventListener('mouseleave', function() {
+            const checkedInput = ratingStars.querySelector('input:checked');
+            const rating = checkedInput ? checkedInput.value : 0;
+            highlightStars(rating);
+        });
+
+        function highlightStars(rating) {
+            stars.forEach(star => {
+                const starRating = star.previousElementSibling.value;
+                star.querySelector('i').style.color = starRating <= rating ? '#ffc107' : '#ddd';
+            });
+        }
+    }
+});
+
 
 
 

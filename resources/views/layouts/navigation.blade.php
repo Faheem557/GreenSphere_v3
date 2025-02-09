@@ -76,7 +76,22 @@
                 <li class="slide">
                     <a class="side-menu__item" href="{{ route('user.dashboard') }}">
                         <i class="side-menu__icon fe fe-home"></i>
-                        <span class="side-menu__label">Dashboard a</span>
+                        <span class="side-menu__label">Dashboard</span>
+                    </a>
+                </li>
+                <li class="slide">
+                    <a class="side-menu__item" href="{{ route('plants.catalog') }}">
+                        <i class="side-menu__icon fe fe-grid"></i>
+                        <span class="side-menu__label">Plant Catalog</span>
+                    </a>
+                </li>
+                <li class="slide">
+                    <a class="side-menu__item" href="{{ route('cart.index') }}">
+                        <i class="side-menu__icon fe fe-shopping-cart"></i>
+                        <span class="side-menu__label">Cart</span>
+                        @if(session()->has('cart') && count(session()->get('cart', [])) > 0)
+                            <span class="badge bg-primary side-badge">{{ count(session()->get('cart', [])) }}</span>
+                        @endif
                     </a>
                 </li>
                 <li class="slide">
@@ -98,12 +113,21 @@
                     <a class="side-menu__item" href="{{ route('seller.orders.index') }}">
                         <i class="side-menu__icon fe fe-shopping-cart"></i>
                         <span class="side-menu__label">Orders</span>
+                        @if(auth()->user()->unread_pending_orders_count > 0)
+                            <span class="badge bg-warning side-badge">{{ auth()->user()->unread_pending_orders_count }}</span>
+                        @endif
                     </a>
                 </li>
                 <li class="slide">
                     <a class="side-menu__item" href="{{ route('seller.inventory') }}">
                         <i class="side-menu__icon fe fe-package"></i>
                         <span class="side-menu__label">Inventory</span>
+                    </a>
+                </li>
+                <li class="slide">
+                    <a class="side-menu__item" href="{{ route('seller.reviews.index') }}">
+                        <i class="side-menu__icon fe fe-star"></i>
+                        <span class="side-menu__label">Reviews</span>
                     </a>
                 </li>
                 @endrole
