@@ -61,6 +61,86 @@
                             </div>
                         @endforeach
 
+                        <!-- Check if the user has purchased the plant -->
+                        @if($user->purchases->contains($plant->id))
+                            <div class="add-review mt-4">
+                                <h5>Add Your Review</h5>
+                                <form action="{{ route('reviews.store') }}" method="POST" enctype="multipart/form-data">
+                                    @csrf
+                                    <input type="hidden" name="plant_id" value="{{ $plant->id }}">
+                                    
+                                    <!-- Rating Section -->
+                                    <div class="form-group mb-4">
+                                        <label class="form-label mb-3">Your Rating <span class="text-danger">*</span></label>
+                                        <div class="d-flex flex-column align-items-center">
+                                            <div class="rating-stars">
+                                                <input type="hidden" name="rating" id="selected-rating" required>
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    <i class="bi bi-star-fill rating-star" data-rating="{{ $i }}"></i>
+                                                @endfor
+                                            </div>
+                                            <div class="rating-feedback">
+                                                <span class="selected-rating text-muted">Click to rate</span>
+                                            </div>
+                                        </div>
+                                        @error('rating')
+                                            <div class="text-danger mt-2">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Review Text Section -->
+                                    <div class="form-group mb-4">
+                                        <label class="form-label">Your Review <span class="text-danger">*</span></label>
+                                        <textarea name="comment" 
+                                                  rows="4" 
+                                                  class="form-control @error('comment') is-invalid @enderror" 
+                                                  placeholder="Share your experience with this plant..."
+                                                  required>{{ old('comment') }}</textarea>
+                                        <div class="form-text text-muted">
+                                            Minimum 10 characters, maximum 500 characters
+                                        </div>
+                                        @error('comment')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Image Upload Section -->
+                                    <div class="form-group mb-4">
+                                        <label class="form-label">
+                                            Add Photos
+                                            <span class="badge bg-info ms-2">Optional</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="file" 
+                                                   name="images[]" 
+                                                   class="form-control @error('images.*') is-invalid @enderror" 
+                                                   multiple 
+                                                   accept="image/*"
+                                                   id="review-images">
+                                            <label class="input-group-text" for="review-images">
+                                                <i class="fe fe-image"></i>
+                                            </label>
+                                        </div>
+                                        <div class="form-text text-muted">
+                                            <i class="fe fe-info me-1"></i>
+                                            You can upload up to 5 images (max 2MB each)
+                                        </div>
+                                        <div id="image-preview" class="mt-2 d-flex flex-wrap gap-2"></div>
+                                        @error('images.*')
+                                            <div class="text-danger mt-2">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Submit Button -->
+                                    <div class="form-footer">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fe fe-send me-2"></i>Submit Review
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        @endif
+
                         <!-- Pagination -->
                         <div class="d-flex justify-content-center mt-4">
                             {{ $reviews->links() }}
@@ -72,6 +152,76 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    // Rating functionality
+    const ratingStars = document.querySelectorAll('.rating-star');
+    const ratingInput = document.getElementById('selected-rating');
+    const ratingFeedback = document.querySelector('.selected-rating');
+
+    ratingStars.forEach(star => {
+        star.addEventListener('mouseover', function() {
+            const rating = this.dataset.rating;
+            updateStars(rating);
+        });
+
+        star.addEventListener('click', function() {
+            const rating = this.dataset.rating;
+            ratingInput.value = rating;
+            ratingFeedback.innerHTML = `Rating: ${rating}`;
+            updateStars(rating);
+        });
+    });
+
+    function updateStars(rating) {
+        ratingStars.forEach(star => {
+            const starRating = parseInt(star.dataset.rating);
+            star.classList.toggle('active', starRating <= rating);
+        });
+    }
+
+    // Image preview functionality
+    const imageInput = document.getElementById('review-images');
+    const previewContainer = document.getElementById('image-preview');
+
+    imageInput.addEventListener('change', function() {
+        previewContainer.innerHTML = '';
+        const files = Array.from(this.files);
+
+        files.forEach(file => {
+            if (files.length > 5) {
+                alert('You can only upload up to 5 images');
+                this.value = '';
+                previewContainer.innerHTML = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const div = document.createElement('div');
+                div.className = 'image-preview-item';
+                div.innerHTML = `
+                    <img src="${e.target.result}" class="shadow-sm">
+                    <span class="image-preview-remove">×</span>
+                `;
+                previewContainer.appendChild(div);
+
+                // Remove image functionality
+                div.querySelector('.image-preview-remove').addEventListener('click', function() {
+                    div.remove();
+                    if (previewContainer.children.length === 0) {
+                        imageInput.value = '';
+                    }
+                });
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+});
+</script>
+@endpush
 
 @push('styles')
 <style>

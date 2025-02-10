@@ -139,8 +139,23 @@
                                             <label class="form-label">Email</label>
                                             <input type="email" class="form-control" id="email" value="{{ auth()->user()->email }}" readonly>
                                         </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Phone <span class="text-danger">*</span></label>
+                                            <input type="tel" 
+                                                   class="form-control" 
+                                                   id="phone" 
+                                                   name="phone" 
+                                                   value="{{ auth()->user()->phone }}" 
+                                                   pattern="[0-9]{10,}"
+                                                   title="Please enter a valid phone number"
+                                                   required>
+                                            <div class="invalid-feedback">
+                                                Please provide a valid phone number
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+
                             </div>
 
                             <!-- Delivery Address -->
@@ -149,8 +164,12 @@
                                     <h5 class="fw-bold mb-3">Delivery Address</h5>
                                     <div class="row g-3">
                                         <div class="col-12">
-                                            <label class="form-label">Street Address</label>
-                                            <textarea class="form-control" id="address" name="address" rows="2" required>{{ json_decode(auth()->user()->location)->address ?? '' }}</textarea>
+                                            <label class="form-label">Street Address <span class="text-danger">*</span></label>
+                                            <textarea class="form-control" id="address" name="address" 
+                                                      rows="2" required>{{ json_decode(auth()->user()->location)->address ?? '' }}</textarea>
+                                            <div class="invalid-feedback">
+                                                Please provide your shipping address
+                                            </div>
                                         </div>
                                         <div class="col-md-5">
                                             <label class="form-label">City</label>
@@ -242,9 +261,28 @@ $(document).ready(function() {
     form.addEventListener('submit', function(event) {
         event.preventDefault();
         
-        if (!form.checkValidity()) {
-            event.stopPropagation();
-            form.classList.add('was-validated');
+        // Validate phone
+        const phone = $('#phone').val().replace(/\D/g, '');
+        if (phone.length < 10) {
+            toastr.error('Please enter a valid phone number');
+            $('#phone').focus();
+            return;
+        }
+
+        // Validate address
+        if (!$('#address').val().trim()) {
+            toastr.error('Please enter your shipping address');
+            $('#address').focus();
+            return;
+        }
+
+        // Validate delivery date
+        const deliveryDate = new Date($('#delivery_date').val());
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        if (deliveryDate < tomorrow) {
+            toastr.error('Delivery date must be at least tomorrow');
+            $('#delivery_date').focus();
             return;
         }
 
@@ -256,21 +294,18 @@ $(document).ready(function() {
             _token: '{{ csrf_token() }}',
             name: $('#name').val(),
             email: $('#email').val(),
-            location: {
+            phone: $('#phone').val(),
+            shipping_address: JSON.stringify({
                 address: $('#address').val(),
                 city: $('#city').val(),
                 state: $('#state').val(),
                 zip: $('#zip').val()
-            },
-            delivery: {
-                date: $('#delivery_date').val(),
-                slot: $('#delivery_slot').val(),
-                instructions: $('#delivery_instructions').val()
-            },
+            }),
+            delivery_date: $('#delivery_date').val(),
+            delivery_slot: $('#delivery_slot').val(),
+            delivery_instructions: $('#delivery_instructions').val(),
             payment_method: $('#payment_method').val(),
-            delivery_option_id: $('#delivery_option_id').val(),
-            shipping_address: $('#shipping_address').val(),
-            phone: $('#phone').val()
+            delivery_option_id: $('#delivery_option_id').val()
         };
 
         // Submit order

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Support\Facades\Validator;
 
 class CartController extends BaseController
 {
@@ -216,7 +217,12 @@ class CartController extends BaseController
             return redirect()->route('cart.index')->with('error', 'Your cart is empty');
         }
 
+        // Validate user has required fields
         $user = auth()->user();
+        if (!$user->phone) {
+            return redirect()->route('profile.edit')->with('error', 'Please add your phone number before checkout');
+        }
+
         $total = $this->calculateTotal($cart);
         
         return view('cart.checkout', compact('cart', 'total', 'user'));
@@ -227,5 +233,23 @@ class CartController extends BaseController
         return collect($cart)->sum(function($item) {
             return $item['quantity'] * $item['price'];
         });
+    }
+
+    // Add validation method
+    private function validateCheckoutData($data)
+    {
+        return Validator::make($data, [
+            'phone' => 'required|string|min:10',
+            'shipping_address' => 'required|json',
+            'delivery_date' => 'required|date|after:today',
+            'delivery_slot' => 'required|in:morning,afternoon,evening',
+            'payment_method' => 'required|in:cod,online',
+            'delivery_option_id' => 'required|exists:delivery_options,id'
+        ], [
+            'phone.required' => 'Phone number is required',
+            'shipping_address.required' => 'Shipping address is required',
+            'delivery_date.after' => 'Delivery date must be after today',
+            'delivery_slot.in' => 'Please select a valid delivery slot'
+        ]);
     }
 } 
