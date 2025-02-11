@@ -16,6 +16,11 @@ return new class extends Migration
             $table->string('status')->default('pending');
             $table->string('payment_method')->default('cod');
             $table->json('shipping_address');
+            $table->string('phone')->nullable();
+            $table->timestamp('delivery_date')->nullable();
+            $table->string('delivery_slot')->nullable();
+            $table->text('delivery_instructions')->nullable();
+            $table->string('tracking_number')->nullable();
             $table->boolean('is_read')->default(false);
             $table->timestamps();
         });

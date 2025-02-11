@@ -70,8 +70,16 @@
                         </a>
                         <ul class="slide-menu {{ request()->routeIs('seller.*') ? 'show' : '' }}">
                             <li><a href="{{ route('seller.dashboard') }}" class="slide-item {{ request()->routeIs('seller.dashboard') ? 'active' : '' }}">Dashboard</a></li>
+                            <li><a href="{{ route('seller.orders.index') }}" class="slide-item {{ request()->routeIs('seller.orders.*') ? 'active' : '' }}">
+                                Orders
+                                @if(auth()->user()->unread_pending_orders_count > 0)
+                                    <span class="badge bg-warning">{{ auth()->user()->unread_pending_orders_count }}</span>
+                                @endif
+                            </a></li>
+                            <li><a href="{{ route('seller.inventory') }}" class="slide-item {{ request()->routeIs('seller.inventory') ? 'active' : '' }}">Inventory</a></li>
                             <li><a href="{{ route('seller.plants.add') }}" class="slide-item {{ request()->routeIs('seller.plants.add') ? 'active' : '' }}">Add Plant</a></li>
                             <li><a href="{{ route('seller.inventory') }}" class="slide-item {{ request()->routeIs('seller.inventory') ? 'active' : '' }}">Inventory</a></li>
+                            <li><a href="{{ route('seller.reviews.index') }}" class="slide-item {{ request()->routeIs('seller.reviews.*') ? 'active' : '' }}">Reviews</a></li>
                         </ul>
                     </li>
                 @endrole
@@ -85,6 +93,15 @@
                         </a>
                         <ul class="slide-menu {{ request()->routeIs('user.*') ? 'show' : '' }}">
                             <li><a href="{{ route('user.dashboard') }}" class="slide-item {{ request()->routeIs('user.dashboard') ? 'active' : '' }}">Dashboard</a></li>
+                            <li><a href="{{ route('plants.catalog') }}" class="slide-item {{ request()->routeIs('plants.catalog.*') ? 'active' : '' }}">Plant Catalog</a></li>
+                            <li><a href="{{ route('cart.index') }}" class="slide-item {{ request()->routeIs('cart.*') ? 'active' : '' }}">
+                                Cart
+                                @if(session()->has('cart') && count(session()->get('cart', [])) > 0)
+                                    <span class="badge bg-primary">{{ count(session()->get('cart', [])) }}</span>
+                                @endif
+                            </a></li>
+                            <li><a href="{{ route('user.orders.index') }}" class="slide-item {{ request()->routeIs('user.orders.*') ? 'active' : '' }}">My Orders</a></li>
+                            <li><a href="{{ route('user.user.reviews') }}" class="slide-item {{ request()->routeIs('user.user.reviews') ? 'active' : '' }}">My Reviews</a></li>
                         </ul>
                     </li>
                 @endrole

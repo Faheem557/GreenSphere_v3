@@ -106,12 +106,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/reviews/{review}/reply', 'reply')->name('reviews.reply');
         });
     });
+
+    // Review Routes
+    Route::controller(ReviewController::class)->group(function () {
+        Route::post('/plants/{plant}/reviews', 'store')->name('reviews.store');
+    });
 });
 
 // Profile Routes
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/notifications', [ProfileController::class, 'updateNotificationPreferences'])
+         ->name('profile.notifications.update');
+    Route::put('/profile/location', [ProfileController::class, 'updateLocation'])
+         ->name('profile.location.update');
 });
 
 // Plant Catalog Routes
