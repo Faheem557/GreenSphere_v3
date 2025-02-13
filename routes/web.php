@@ -30,15 +30,15 @@ require __DIR__ . '/auth.php';
 // Role-specific routes
 Route::middleware(['auth', 'verified'])->group(function () {
     // Common Profile Routes
-    Route::controller(ProfileController::class)->group(function () {
-        Route::get('/profile', 'edit')->name('profile.edit');
-        Route::patch('/profile', 'update')->name('profile.update');
-        Route::delete('/profile', 'destroy')->name('profile.destroy');
-        Route::get('/profile/preferences', 'preferences')->name('profile.preferences');
-        Route::post('/profile/preferences', 'updatePreferences');
-        Route::get('/profile/location', 'location')->name('profile.location');
-        Route::post('/profile/location', 'updateLocation');
-    });
+    // Route::controller(ProfileController::class)->group(function () {
+    //     Route::get('/profile', 'edit')->name('profile.edit');
+    //     Route::patch('/profile', 'update')->name('profile.update');
+    //     Route::delete('/profile', 'destroy')->name('profile.destroy');
+    //     Route::get('/profile/preferences', 'preferences')->name('profile.preferences');
+    //     Route::post('/profile/preferences', 'updatePreferences');
+    //     Route::get('/profile/location', 'location')->name('profile.location');
+    //     Route::post('/profile/location', 'updateLocation');
+    // });
 
     // Plant Routes (Public)
     Route::controller(PlantController::class)->group(function () {

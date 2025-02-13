@@ -1,144 +1,148 @@
-@extends('layouts.app')
+@extends('layouts.main')
 
-@section('content')
-<div class="container">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header">
-                    <h4>Edit Profile</h4>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        @method('PUT')
-                        
-                        <!-- Basic Information -->
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Name</label>
-                            <input type="text" class="form-control" id="name" name="name" value="{{ old('name', $user->name) }}">
+@section('title', 'User Dashboard')
+
+@section('maincontent')
+                    <!-- CONTAINER -->
+                    <div class="main-container container-fluid">
+
+                        <!-- PAGE-HEADER -->
+                        <div class="page-header">
+                            <h1 class="page-title">Profile Settings</h1>
+                            <div>
+                                <ol class="breadcrumb">
+                                    <li class="breadcrumb-item">
+                                        @if(auth()->user()->hasRole('seller'))
+                                            <a href="{{ route('seller.dashboard') }}">Dashboard</a>
+                                        @else
+                                            <a href="{{ route('user.dashboard') }}">Dashboard</a>
+                                        @endif
+                                    </li>
+                                    <li class="breadcrumb-item active" aria-current="page">Profile Settings</li>
+                                </ol>
+                            </div>
                         </div>
+                        <!-- PAGE-HEADER END -->
 
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" value="{{ old('email', $user->email) }}">
-                        </div>
+                        @if (session('success'))
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                {{ session('success') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        @endif
 
-                        <!-- Gardening Level -->
-                        <div class="mb-3">
-                            <label for="gardening_level" class="form-label">Gardening Experience Level</label>
-                            <select class="form-select" id="gardening_level" name="gardening_level">
-                                <option value="beginner" {{ $user->profile->gardening_level === 'beginner' ? 'selected' : '' }}>Beginner</option>
-                                <option value="intermediate" {{ $user->profile->gardening_level === 'intermediate' ? 'selected' : '' }}>Intermediate</option>
-                                <option value="advanced" {{ $user->profile->gardening_level === 'advanced' ? 'selected' : '' }}>Advanced</option>
-                            </select>
-                        </div>
-
-                        <!-- Plant Preferences -->
-                        <div class="mb-3">
-                            <label class="form-label">Plant Preferences</label>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="plant_preferences[]" value="indoor" 
-                                            {{ in_array('indoor', $user->profile->plant_preferences ?? []) ? 'checked' : '' }}>
-                                        <label class="form-check-label">Indoor Plants</label>
+                        <!-- ROW-1 OPEN -->
+                        <div class="row">
+                            <div class="col-xl-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <div class="card-title">Profile Photo</div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="text-center chat-image mb-5">
+                                            <div class="avatar avatar-xxl chat-profile mb-3 brround">
+                                                <img src="{{ auth()->user()->profile_photo_url ?? '../assets/images/users/21.jpg' }}" alt="Profile Image" id="preview-image" class="brround">
+                                            </div>
+                                            <div class="main-chat-msg-name">
+                                                <h5 class="mb-1 text-dark fw-semibold">{{ auth()->user()->name }}</h5>
+                                                <p class="text-muted mt-0 mb-0 pt-0 fs-13">{{ auth()->user()->email }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profile_photo" class="form-label">Change Profile Photo</label>
+                                            <input type="file" class="form-control" name="profile_photo" id="profile_photo" form="profile-form">
+                                            @error('profile_photo')
+                                                <span class="text-danger">{{ $message }}</span>
+                                            @enderror
+                                        </div>
                                     </div>
                                 </div>
-                                <!-- Add more plant preferences -->
+                            </div>
+                            <div class="col-xl-8">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Edit Profile</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="profile-form" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
+                                            @csrf
+                                            @method('PUT')
+                                            
+                                            <div class="form-group">
+                                                <label for="name" class="form-label">Full Name</label>
+                                                <input type="text" class="form-control @error('name') is-invalid @enderror" 
+                                                       name="name" value="{{ old('name', auth()->user()->name) }}" required>
+                                                @error('name')
+                                                    <span class="invalid-feedback">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="email" class="form-label">Email address</label>
+                                                <input type="email" class="form-control @error('email') is-invalid @enderror" 
+                                                       name="email" value="{{ old('email', auth()->user()->email) }}" required>
+                                                @error('email')
+                                                    <span class="invalid-feedback">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="phone" class="form-label">Phone Number</label>
+                                                <input type="text" class="form-control @error('phone') is-invalid @enderror" 
+                                                       name="phone" value="{{ old('phone', auth()->user()->phone) }}">
+                                                @error('phone')
+                                                    <span class="invalid-feedback">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="bio" class="form-label">Bio</label>
+                                                <textarea class="form-control @error('bio') is-invalid @enderror" 
+                                                          name="bio" rows="4">{{ old('bio', auth()->user()->bio) }}</textarea>
+                                                @error('bio')
+                                                    <span class="invalid-feedback">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="address" class="form-label">Address</label>
+                                                <textarea class="form-control @error('address') is-invalid @enderror" 
+                                                          name="address" rows="2">{{ old('address', auth()->user()->address) }}</textarea>
+                                                @error('address')
+                                                    <span class="invalid-feedback">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+
+                                            <div class="form-footer mt-4">
+                                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
-                        <!-- Location -->
-                        <div class="mb-3">
-                            <label class="form-label">Location</label>
-                            <div id="map" style="height: 300px;" class="mb-3"></div>
-                            <input type="hidden" name="location[latitude]" id="latitude">
-                            <input type="hidden" name="location[longitude]" id="longitude">
-                            <input type="text" class="form-control mb-2" name="location[address]" placeholder="Address" 
-                                value="{{ $user->profile->location_data['address'] ?? '' }}">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control" name="location[city]" placeholder="City" 
-                                        value="{{ $user->profile->location_data['city'] ?? '' }}">
-                                </div>
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control" name="location[state]" placeholder="State" 
-                                        value="{{ $user->profile->location_data['state'] ?? '' }}">
-                                </div>
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control" name="location[zip]" placeholder="ZIP" 
-                                        value="{{ $user->profile->location_data['zip'] ?? '' }}">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Notification Preferences -->
-                        <div class="mb-3">
-                            <label class="form-label">Notification Preferences</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="notification_preferences[email]" 
-                                    {{ ($user->profile->notification_preferences['email'] ?? false) ? 'checked' : '' }}>
-                                <label class="form-check-label">Email Notifications</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="notification_preferences[push]" 
-                                    {{ ($user->profile->notification_preferences['push'] ?? false) ? 'checked' : '' }}>
-                                <label class="form-check-label">Push Notifications</label>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">Update Profile</button>
-                    </form>
+                        <!-- ROW-1 CLOSED -->
+                    </div>
+                    <!-- CONTAINER CLOSED -->
                 </div>
             </div>
-        </div>
-    </div>
-</div>
+            <!--app-content closed-->
 
 @push('scripts')
-<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places"></script>
 <script>
-    // Initialize map
-    function initMap() {
-        const map = new google.maps.Map(document.getElementById('map'), {
-            zoom: 13,
-            center: { 
-                lat: {{ $user->profile->location_data['latitude'] ?? 0 }}, 
-                lng: {{ $user->profile->location_data['longitude'] ?? 0 }} 
-            }
-        });
+    // Preview image before upload
+    document.getElementById('profile_photo').addEventListener('change', function(e) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('preview-image').src = e.target.result;
+        }
+        reader.readAsDataURL(this.files[0]);
+    });
 
-        const marker = new google.maps.Marker({
-            map: map,
-            draggable: true
-        });
-
-        // Update coordinates when marker is dragged
-        marker.addListener('dragend', function() {
-            const position = marker.getPosition();
-            document.getElementById('latitude').value = position.lat();
-            document.getElementById('longitude').value = position.lng();
-        });
-
-        // Initialize Places Autocomplete
-        const input = document.querySelector('input[name="location[address]"]');
-        const autocomplete = new google.maps.places.Autocomplete(input);
-
-        autocomplete.addListener('place_changed', function() {
-            const place = autocomplete.getPlace();
-            if (place.geometry) {
-                map.setCenter(place.geometry.location);
-                marker.setPosition(place.geometry.location);
-                
-                document.getElementById('latitude').value = place.geometry.location.lat();
-                document.getElementById('longitude').value = place.geometry.location.lng();
-            }
-        });
-    }
-
-    // Load map when page is ready
-    document.addEventListener('DOMContentLoaded', initMap);
+    // Dismiss alerts after 5 seconds
+    setTimeout(function() {
+        $('.alert').alert('close');
+    }, 5000);
 </script>
 @endpush
 @endsection

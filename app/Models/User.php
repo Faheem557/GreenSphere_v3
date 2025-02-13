@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use App\Models\Order;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
@@ -24,7 +25,11 @@ class User extends Authenticatable
         'email',
         'password',
         'preferences',
-        'location'
+        'location',
+        'profile_photo_path',
+        'bio',
+        'phone',
+        'address',
     ];
 
     /**
@@ -104,5 +109,14 @@ class User extends Authenticatable
                 ]
             ]);
         });
+    }
+
+    public function getProfilePhotoUrlAttribute()
+    {
+        if ($this->profile_photo_path) {
+            return Storage::url($this->profile_photo_path);
+        }
+        
+        return null;
     }
 }

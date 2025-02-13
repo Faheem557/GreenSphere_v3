@@ -7,13 +7,48 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Http\Requests\UpdateProfileRequest;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
     public function edit()
     {
-        $user = Auth::user()->load('profile');
-        return view('profile.edit', compact('user'));
+        return view('profile.edit');
+    }
+
+    public function update(Request $request)
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . auth()->id()],
+            'profile_photo' => ['nullable', 'image', 'max:1024'],
+            'bio' => ['nullable', 'string'],
+            'phone' => ['nullable', 'string'],
+            'address' => ['nullable', 'string'],
+        ]);
+
+        $user = auth()->user();
+
+        if ($request->hasFile('profile_photo')) {
+            // Delete old photo if exists
+            if ($user->profile_photo_path) {
+                Storage::delete($user->profile_photo_path);
+            }
+
+            // Store new photo
+            $path = $request->file('profile_photo')->store('profile-photos', 'public');
+            $user->profile_photo_path = $path;
+        }
+
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'bio' => $request->bio,
+            'phone' => $request->phone,
+            'address' => $request->address,
+        ]);
+
+        return back()->with('success', 'Profile updated successfully');
     }
 
     public function updateProfile(UpdateProfileRequest $request)
