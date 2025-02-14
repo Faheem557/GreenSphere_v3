@@ -127,7 +127,7 @@ class User extends Authenticatable
 
     public function wishlistedPlants()
     {
-        return $this->belongsToMany(Plant::class, 'wishlists')
+        return $this->belongsToMany(Plant::class, 'wishlists', 'user_id', 'plant_id')
             ->withTimestamps();
     }
 }

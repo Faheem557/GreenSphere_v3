@@ -44,20 +44,65 @@
                     <div class="card-title">Price Range</div>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('plants.catalog') }}" method="GET">
-                        <div class="range-slider">
-                            <input type="range" name="min_price" min="0" max="10000" value="{{ request('min_price', 0) }}" class="form-range">
-                            <input type="range" name="max_price" min="0" max="10000" value="{{ request('max_price', 10000) }}" class="form-range">
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col">
-                                <input type="number" name="min_price" class="form-control" placeholder="Min" value="{{ request('min_price') }}">
+                    <form id="priceFilterForm" action="{{ route('plants.catalog') }}" method="GET">
+                        <!-- Preserve existing search and sort parameters -->
+                        @if(request('search'))
+                            <input type="hidden" name="search" value="{{ request('search') }}">
+                        @endif
+                        @if(request('sort'))
+                            <input type="hidden" name="sort" value="{{ request('sort') }}">
+                        @endif
+                        @if(request('category'))
+                            <input type="hidden" name="category" value="{{ request('category') }}">
+                        @endif
+
+                        <!-- Radio buttons for quick selection -->
+                        <label class="custom-control custom-radio mb-0 mt-1">
+                            <input type="radio" class="custom-control-input price-range" name="price_range" 
+                                   value="0-500" {{ request('price_range') == '0-500' ? 'checked' : '' }}>
+                            <span class="custom-control-label">Upto PKR-500</span>
+                        </label>
+                        <label class="custom-control custom-radio mb-0 mt-1">
+                            <input type="radio" class="custom-control-input price-range" name="price_range" 
+                                   value="500-1000" {{ request('price_range') == '500-1000' ? 'checked' : '' }}>
+                            <span class="custom-control-label">PKR-500 - PKR-1000</span>
+                        </label>
+                        <label class="custom-control custom-radio mb-0 mt-1">
+                            <input type="radio" class="custom-control-input price-range" name="price_range" 
+                                   value="1000-1500" {{ request('price_range') == '1000-1500' ? 'checked' : '' }}>
+                            <span class="custom-control-label">PKR-1000 - PKR-1500</span>
+                        </label>
+                        <label class="custom-control custom-radio mb-0 mt-1">
+                            <input type="radio" class="custom-control-input price-range" name="price_range" 
+                                   value="2000-999999" {{ request('price_range') == '2000-999999' ? 'checked' : '' }}>
+                            <span class="custom-control-label">Over PKR-2000</span>
+                        </label>
+
+                        <!-- Price range slider -->
+                        <div class="price-slider mt-4">
+                            <div class="range-slider">
+                                <div id="slider-range" class="ui-slider ui-slider-horizontal"></div>
                             </div>
-                            <div class="col">
-                                <input type="number" name="max_price" class="form-control" placeholder="Max" value="{{ request('max_price') }}">
+                            <div class="row mt-2">
+                                <div class="col-6">
+                                    <input type="number" 
+                                           id="min-price" 
+                                           name="min_price" 
+                                           class="form-control" 
+                                           placeholder="Min" 
+                                           value="{{ request('min_price', 0) }}">
+                                </div>
+                                <div class="col-6">
+                                    <input type="number" 
+                                           id="max-price" 
+                                           name="max_price" 
+                                           class="form-control" 
+                                           placeholder="Max" 
+                                           value="{{ request('max_price', 5000) }}">
+                                </div>
                             </div>
+                            <button type="submit" class="btn btn-primary btn-sm w-100 mt-2">Apply Range</button>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-block">Apply Filter</button>
                     </form>
                 </div>
             </div>
@@ -134,8 +179,9 @@
                                                 <li>
                                                     <button type="button" 
                                                             class="btn btn-danger add-to-wishlist" 
-                                                            data-plant-id="{{ $plant->id }}">
-                                                        <i class="fe fe-heart text-white"></i>
+                                                            data-plant-id="{{ $plant->id }}"
+                                                            data-plant-name="{{ $plant->name }}">
+                                                        <i class="fe {{ in_array($plant->id, $wishlistedPlantIds ?? []) ? 'fe-heart-fill' : 'fe-heart' }} text-white"></i>
                                                     </button>
                                                 </li>
                                             </ul>
@@ -145,7 +191,12 @@
                                                      alt="{{ $plant->name }}">
                                             @else
                                                 <div class="br-be-0 br-te-0">
-                                                    <i class="fas fa-image fa-3x text-muted"></i>
+                                                    {{-- resize image --}}
+                                                    <img src="{{ asset('storage/noImage.jpg') }}" 
+     class="img-fluid br-7" 
+     style="width: 150px; height: 100px; object-fit: cover;" 
+     alt="No image available">
+
                                                 </div>
                                             @endif
                                         </div>
@@ -157,7 +208,7 @@
                                                 <div class="mb-2">
                                                     <span class="badge bg-success">{{ $plant->category ?? 'Uncategorized' }}</span>
                                                 </div>
-                                                <div class="price">₹{{ number_format($plant->price, 2) }}</div>
+                                                <div class="price">PKR-{{ number_format($plant->price, 2) }}</div>
                                                 <div class="mt-2">
                                                     <small class="text-muted">Available: {{ $plant->quantity ?? 'N/A' }}</small>
                                                 </div>
@@ -200,6 +251,11 @@
                                                 <img src="{{ asset('storage/' . $plant->image) }}" 
                                                      class="cover-image br-7 w-100" 
                                                      alt="{{ $plant->name }}">
+                                            @else
+                                                <img src="{{ asset('storage/noImage.jpg') }}" 
+                                                     class="cover-image br-7 w-100" 
+                                                     style="width: 200px; height: 200px; object-fit: cover;" 
+                                                     alt="No image available">
                                             @endif
                                         </div>
                                     </div>
@@ -212,7 +268,7 @@
                                     </div>
                                     <div class="col-xl-3 col-lg-12 col-md-12">
                                         <div class="card-body">
-                                            <div class="price h3 text-center mb-5 fw-bold">₹{{ number_format($plant->price, 2) }}</div>
+                                            <div class="price h3 text-center mb-5 fw-bold">PKR-{{ number_format($plant->price, 2) }}</div>
                                             <button type="button" 
                                                     class="btn btn-primary btn-block add-to-cart mb-2" 
                                                     data-plant-id="{{ $plant->id }}"
@@ -222,8 +278,10 @@
                                             </button>
                                             <button type="button" 
                                                     class="btn btn-outline-primary btn-block add-to-wishlist" 
-                                                    data-plant-id="{{ $plant->id }}">
-                                                <i class="fe fe-heart me-2"></i>Add to Wishlist
+                                                    data-plant-id="{{ $plant->id }}"
+                                                    data-plant-name="{{ $plant->name }}">
+                                                <i class="fe {{ in_array($plant->id, $wishlistedPlantIds ?? []) ? 'fe-heart-fill' : 'fe-heart' }} me-2"></i>
+                                                Add to Wishlist
                                             </button>
                                         </div>
                                     </div>
@@ -247,6 +305,7 @@
 @endsection
 
 @push('styles')
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 <style>
 .product-grid6 {
     transition: all 0.3s ease;
@@ -314,19 +373,117 @@
 .range-slider {
     margin: 20px 0;
 }
+.ui-slider-horizontal {
+    height: 4px;
+    background: #e9ecef;
+    border: none;
+    margin: 10px 0;
+}
+
+.ui-slider .ui-slider-handle {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: none;
+    background: #0d6efd;
+    top: -6px;
+    cursor: pointer;
+}
+
+.ui-slider .ui-slider-range {
+    background: #0d6efd;
+}
+
+.price-slider input[type="number"] {
+    text-align: center;
+}
+
+.range-slider {
+    padding: 5px;
+}
 </style>
 @endpush
 
 @push('scripts')
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 <script>
 $(document).ready(function() {
-    // Price range slider functionality
-    $('input[type="range"]').on('input', function() {
-        $(this).next('input[type="number"]').val($(this).val());
+    // Price range slider initialization
+    $("#slider-range").slider({
+        range: true,
+        min: 0,
+        max: 5000,
+        values: [{{ request('min_price', 0) }}, {{ request('max_price', 5000) }}],
+        slide: function(event, ui) {
+            $("#min-price").val(ui.values[0]);
+            $("#max-price").val(ui.values[1]);
+            // Uncheck radio buttons when slider is used
+            $('.price-range').prop('checked', false);
+        }
     });
-    
-    $('input[type="number"]').on('input', function() {
-        $(this).prev('input[type="range"]').val($(this).val());
+
+    // Sync number inputs with slider
+    $("#min-price, #max-price").on('change', function() {
+        var min = parseInt($("#min-price").val());
+        var max = parseInt($("#max-price").val());
+        
+        if (min >= 0 && max > min) {
+            $("#slider-range").slider("values", [min, max]);
+            // Uncheck radio buttons when inputs are changed
+            $('.price-range').prop('checked', false);
+        }
+    });
+
+    // Handle radio button changes
+    $('.price-range').change(function() {
+        if ($(this).is(':checked')) {
+            // Clear custom range inputs when radio is selected
+            var range = $(this).val().split('-');
+            $("#min-price").val(range[0]);
+            $("#max-price").val(range[1]);
+            $("#slider-range").slider("values", [range[0], range[1]]);
+        }
+        $('#priceFilterForm').submit();
+    });
+
+    // Add to Wishlist functionality
+    $('.add-to-wishlist').click(function() {
+        var button = $(this);
+        var plantId = button.data('plant-id');
+        var plantName = button.data('plant-name');
+        var icon = button.find('i');
+        
+        $.ajax({
+            url: "{{ route('user.wishlist.add', '') }}/" + plantId,
+            type: 'POST',
+            data: {
+                _token: "{{ csrf_token() }}"
+            },
+            beforeSend: function() {
+                button.prop('disabled', true);
+            },
+            success: function(response) {
+                if(response.success) {
+                    // Toggle heart icon
+                    if (response.is_wishlisted) {
+                        icon.removeClass('fe-heart').addClass('fe-heart-fill text-danger');
+                    } else {
+                        icon.removeClass('fe-heart-fill text-danger').addClass('fe-heart');
+                    }
+                    toastr.success(response.message);
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Failed to add to wishlist';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                toastr.error(errorMessage);
+            },
+            complete: function() {
+                button.prop('disabled', false);
+            }
+        });
     });
 
     // Add to Cart functionality
@@ -368,40 +525,6 @@ $(document).ready(function() {
             complete: function() {
                 button.prop('disabled', false);
                 button.html(originalHtml);
-            }
-        });
-    });
-
-    // Add to Wishlist functionality
-    $('.add-to-wishlist').click(function() {
-        var button = $(this);
-        var plantId = button.data('plant-id');
-        var plantName = button.data('plant-name');
-        
-        $.ajax({
-            url: "{{ route('user.wishlist.add', '') }}/" + plantId,
-            type: 'POST',
-            data: {
-                _token: "{{ csrf_token() }}"
-            },
-            beforeSend: function() {
-                button.prop('disabled', true);
-            },
-            success: function(response) {
-                if(response.success) {
-                    button.find('i').removeClass('fe-heart').addClass('fe-heart-fill text-danger');
-                    toastr.success(`${plantName} added to wishlist successfully!`);
-                }
-            },
-            error: function(xhr) {
-                let errorMessage = 'Failed to add to wishlist';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMessage = xhr.responseJSON.message;
-                }
-                toastr.error(errorMessage);
-            },
-            complete: function() {
-                button.prop('disabled', false);
             }
         });
     });

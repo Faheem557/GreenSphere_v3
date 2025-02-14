@@ -107,7 +107,7 @@
                                     <p class="card-text text-muted">{{ Str::limit($plant->description, 100) }}</p>
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span class="badge bg-success">{{ $plant->category }}</span>
-                                        <span class="text-primary">₹{{ number_format($plant->price, 2) }}</span>
+                                        <span class="text-primary">PKR-{{ number_format($plant->price, 2) }}</span>
                                     </div>
                                     <div class="mt-3">
                                         <small class="text-muted">Available: {{ $plant->quantity }}</small>

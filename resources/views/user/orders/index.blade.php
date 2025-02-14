@@ -26,7 +26,7 @@
                                 <tr>
                                     <td>#{{ $order->id }}</td>
                                     <td>{{ $order->created_at->format('M d, Y') }}</td>
-                                    <td>₹{{ number_format($order->total_amount, 2) }}</td>
+                                    <td>PKR-{{ number_format($order->total_amount, 2) }}</td>
                                     <td>
                                         @if($order->status === 'pending')
                                         <span class="badge bg-{{ $order->status_color }}">

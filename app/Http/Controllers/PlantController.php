@@ -324,6 +324,19 @@ class PlantController extends BaseController
             });
         }
 
+        // Handle price filtering
+        if ($request->has('price_range')) {
+            list($min, $max) = explode('-', $request->price_range);
+            $query->whereBetween('price', [$min, $max]);
+        } elseif ($request->has('min_price') && $request->has('max_price')) {
+            $query->whereBetween('price', [$request->min_price, $request->max_price]);
+        }
+
+        // Handle category filter
+        if ($request->has('category')) {
+            $query->where('category_id', $request->category);
+        }
+
         // Handle sorting
         $sort = $request->get('sort', 'name_asc');
         switch ($sort) {
@@ -342,7 +355,15 @@ class PlantController extends BaseController
 
         $plants = $query->paginate(12);
         
-        return view('plants.catalog', compact('plants'));
+        // Get wishlisted plant IDs for the current user
+        $wishlistedPlantIds = [];
+        if (auth()->check()) {
+            $wishlistedPlantIds = auth()->user()->wishlistedPlants()
+                ->pluck('plants.id')
+                ->toArray();
+        }
+
+        return view('plants.catalog', compact('plants', 'wishlistedPlantIds'));
     }
 
     public function userDashboard()
@@ -392,14 +413,31 @@ class PlantController extends BaseController
     public function addToWishlist(Plant $plant)
     {
         try {
-            auth()->user()->wishlistedPlants()->attach($plant->id);
-            return back()->with('success', 'Plant added to wishlist successfully');
-        } catch (\Exception $e) {
-            // Handle duplicate entry gracefully
-            if ($e->getCode() == 23000) { // MySQL duplicate entry error code
-                return back()->with('info', 'Plant is already in your wishlist');
+            $user = auth()->user();
+            
+            // Check if plant is already in wishlist
+            if ($user->wishlistedPlants()->where('plant_id', $plant->id)->exists()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Plant is already in your wishlist',
+                    'is_wishlisted' => true
+                ]);
             }
-            return back()->with('error', 'Could not add plant to wishlist');
+
+            // Add to wishlist
+            $user->wishlistedPlants()->attach($plant->id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Plant added to wishlist successfully',
+                'is_wishlisted' => true
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not add plant to wishlist'
+            ], 500);
         }
     }
 

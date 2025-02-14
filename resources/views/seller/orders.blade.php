@@ -48,7 +48,7 @@ Seller Orders
                                         <div>{{ $item->plant->name }} (x{{ $item->quantity }})</div>
                                         @endforeach
                                     </td>
-                                    <td>₹{{ number_format($order->total_amount, 2) }}</td>
+                                    <td>PKR-{{ number_format($order->total_amount, 2) }}</td>
                                     <td>
                                         @if($order->status === 'pending')
                                         <span class="badge bg-{{ $order->status_color }}">

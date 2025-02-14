@@ -162,4 +162,10 @@ class Plant extends Model
     {
         return $this->belongsToMany(Order::class, 'order_plant');
     }
+
+    public function wishlistedBy()
+    {
+        return $this->belongsToMany(User::class, 'wishlists', 'plant_id', 'user_id')
+            ->withTimestamps();
+    }
 } 
