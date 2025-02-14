@@ -213,7 +213,7 @@ class OrderController extends BaseController
     public function confirmation(Order $order)
     {
         // Ensure user can only view their own order confirmation
-        if (auth()->id() !== $order->user_id) {
+        if (auth()->id() !== $order->buyer_id) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -223,7 +223,7 @@ class OrderController extends BaseController
     public function status(Order $order)
     {
         // Ensure the user can only view their own orders
-        if ($order->user_id !== auth()->id()) {
+        if ($order->buyer_id !== auth()->id()) {
             abort(403);
         }
 
@@ -323,5 +323,26 @@ class OrderController extends BaseController
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function active()
+    {
+        $orders = Order::where('buyer_id', auth()->id())
+            ->whereNotIn('status', ['completed', 'cancelled'])
+            ->latest()
+            ->paginate(10);
+        
+        return view('user.orders.active', compact('orders'));
+    }
+
+    public function index()
+    {
+        $orders = auth()->user()->orders()
+            ->whereNotIn('status', ['pending'])
+            ->with(['plants', 'seller'])
+            ->latest()
+            ->paginate(10);
+
+        return view('orders.index', compact('orders'));
     }
 }

@@ -61,7 +61,7 @@ class User extends Authenticatable
 
     public function orders()
     {
-        return $this->hasMany(Order::class);
+        return $this->hasMany(Order::class, 'buyer_id');
     }
 
     public function plants()
@@ -118,5 +118,16 @@ class User extends Authenticatable
         }
         
         return null;
+    }
+
+    public function wishlist()
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    public function wishlistedPlants()
+    {
+        return $this->belongsToMany(Plant::class, 'wishlists')
+            ->withTimestamps();
     }
 }

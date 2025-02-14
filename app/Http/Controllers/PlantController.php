@@ -378,4 +378,34 @@ class PlantController extends BaseController
             
         return view('plants.my-plants', compact('plants'));
     }
+
+    public function wishlist()
+    {
+        $wishlistedPlants = auth()->user()->wishlistedPlants()
+            ->with('seller')
+            ->latest('wishlists.created_at')
+            ->paginate(12);
+        
+        return view('user.wishlist', compact('wishlistedPlants'));
+    }
+
+    public function addToWishlist(Plant $plant)
+    {
+        try {
+            auth()->user()->wishlistedPlants()->attach($plant->id);
+            return back()->with('success', 'Plant added to wishlist successfully');
+        } catch (\Exception $e) {
+            // Handle duplicate entry gracefully
+            if ($e->getCode() == 23000) { // MySQL duplicate entry error code
+                return back()->with('info', 'Plant is already in your wishlist');
+            }
+            return back()->with('error', 'Could not add plant to wishlist');
+        }
+    }
+
+    public function removeFromWishlist(Plant $plant)
+    {
+        auth()->user()->wishlistedPlants()->detach($plant->id);
+        return back()->with('success', 'Plant removed from wishlist successfully');
+    }
 } 

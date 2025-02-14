@@ -3,7 +3,7 @@
     <div class="app-sidebar__overlay" data-bs-toggle="sidebar"></div>
     <div class="app-sidebar">
         <div class="side-header">
-            <a class="header-brand1" href="index.html">
+            <a class="header-brand1" href="{{ url('/') }}">
                 <img src="{{ URL::asset('assets/images/brand/logo-white.png') }}" class="header-brand-img desktop-logo" alt="logo">
                 <img src="{{ URL::asset('assets/images/brand/icon-white.png') }}" class="header-brand-img toggle-logo" alt="logo">
                 <img src="{{ URL::asset('assets/images/brand/icon-dark.png') }}" class="header-brand-img light-logo" alt="logo">
@@ -65,43 +65,109 @@
                     <li class="slide {{ request()->routeIs('seller.*') ? 'is-expanded' : '' }}">
                         <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0)">
                             <i class="side-menu__icon fe fe-shopping-cart"></i>
-                            <span class="side-menu__label">Seller</span>
+                            <span class="side-menu__label">Seller Dashboard</span>
                             <i class="angle fe fe-chevron-right"></i>
                         </a>
                         <ul class="slide-menu {{ request()->routeIs('seller.*') ? 'show' : '' }}">
-                            <li><a href="{{ route('seller.dashboard') }}" class="slide-item {{ request()->routeIs('seller.dashboard') ? 'active' : '' }}">Dashboard</a></li>
-                            <li><a href="{{ route('seller.orders.index') }}" class="slide-item {{ request()->routeIs('seller.orders.*') ? 'active' : '' }}">
-                                Orders
-                                @if(auth()->user()->unread_pending_orders_count > 0)
-                                    <span class="badge bg-warning">{{ auth()->user()->unread_pending_orders_count }}</span>
-                                @endif
+                            <li><a href="{{ route('seller.dashboard') }}" class="slide-item {{ request()->routeIs('seller.dashboard') ? 'active' : '' }}">
+                                <i class="side-menu__icon fe fe-home"></i> Dashboard
                             </a></li>
-                            <li><a href="{{ route('seller.inventory') }}" class="slide-item {{ request()->routeIs('seller.inventory') ? 'active' : '' }}">Inventory</a></li>
-                            <li><a href="{{ route('seller.plants.add') }}" class="slide-item {{ request()->routeIs('seller.plants.add') ? 'active' : '' }}">Add Plant</a></li>
-                            <li><a href="{{ route('seller.inventory') }}" class="slide-item {{ request()->routeIs('seller.inventory') ? 'active' : '' }}">Inventory</a></li>
-                            <li><a href="{{ route('seller.reviews.index') }}" class="slide-item {{ request()->routeIs('seller.reviews.*') ? 'active' : '' }}">Reviews</a></li>
+                            
+                            <!-- Products Management -->
+                            <li class="sub-slide {{ request()->routeIs('seller.plants.*') || request()->routeIs('seller.inventory') ? 'is-expanded' : '' }}">
+                                <a class="sub-side-menu__item" data-bs-toggle="sub-slide" href="javascript:void(0)">
+                                    <i class="side-menu__icon fe fe-package"></i> Products
+                                    <i class="sub-angle fe fe-chevron-right"></i>
+                                </a>
+                                <ul class="sub-slide-menu">
+                                    <li><a href="{{ route('seller.inventory') }}" class="sub-slide-item {{ request()->routeIs('seller.inventory') ? 'active' : '' }}">Inventory</a></li>
+                                    <li><a href="{{ route('seller.plants.add') }}" class="sub-slide-item {{ request()->routeIs('seller.plants.add') ? 'active' : '' }}">Add New Plant</a></li>
+                                </ul>
+                            </li>
+
+                            <!-- Orders Management -->
+                            <li class="sub-slide {{ request()->routeIs('seller.orders.*') ? 'is-expanded' : '' }}">
+                                <a class="sub-side-menu__item" data-bs-toggle="sub-slide" href="javascript:void(0)">
+                                    <i class="side-menu__icon fe fe-shopping-bag"></i> Orders
+                                    @if(auth()->user()->unread_pending_orders_count > 0)
+                                        <span class="badge bg-warning">{{ auth()->user()->unread_pending_orders_count }}</span>
+                                    @endif
+                                    <i class="sub-angle fe fe-chevron-right"></i>
+                                </a>
+                                <ul class="sub-slide-menu">
+                                    <li><a href="{{ route('seller.orders.index') }}" class="sub-slide-item {{ request()->routeIs('seller.orders.index') ? 'active' : '' }}">All Orders</a></li>
+                                    <li><a href="{{ route('seller.orders.pending') }}" class="sub-slide-item {{ request()->routeIs('seller.orders.pending') ? 'active' : '' }}">Pending Orders</a></li>
+                                    <li><a href="{{ route('seller.orders.completed') }}" class="sub-slide-item {{ request()->routeIs('seller.orders.completed') ? 'active' : '' }}">Completed Orders</a></li>
+                                </ul>
+                            </li>
+
+                            <li><a href="{{ route('seller.reviews.index') }}" class="slide-item {{ request()->routeIs('seller.reviews.*') ? 'active' : '' }}">
+                                <i class="side-menu__icon fe fe-star"></i> Reviews
+                            </a></li>
+                            
+                            <li><a href="{{ route('seller.profile') }}" class="slide-item {{ request()->routeIs('seller.profile') ? 'active' : '' }}">
+                                <i class="side-menu__icon fe fe-user"></i> Store Profile
+                            </a></li>
                         </ul>
                     </li>
                 @endrole
 
                 @role('user')
-                    <li class="slide {{ request()->routeIs('user.*') ? 'is-expanded' : '' }}">
+                    <li class="slide {{ request()->routeIs('user.*') || request()->routeIs('plants.catalog') || request()->routeIs('cart.*') ? 'is-expanded' : '' }}">
                         <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0)">
                             <i class="side-menu__icon fe fe-user"></i>
-                            <span class="side-menu__label">User</span>
+                            <span class="side-menu__label">My Account</span>
                             <i class="angle fe fe-chevron-right"></i>
                         </a>
-                        <ul class="slide-menu {{ request()->routeIs('user.*') ? 'show' : '' }}">
-                            <li><a href="{{ route('user.dashboard') }}" class="slide-item {{ request()->routeIs('user.dashboard') ? 'active' : '' }}">Dashboard</a></li>
-                            <li><a href="{{ route('plants.catalog') }}" class="slide-item {{ request()->routeIs('plants.catalog.*') ? 'active' : '' }}">Plant Catalog</a></li>
-                            <li><a href="{{ route('cart.index') }}" class="slide-item {{ request()->routeIs('cart.*') ? 'active' : '' }}">
-                                Cart
-                                @if(session()->has('cart') && count(session()->get('cart', [])) > 0)
-                                    <span class="badge bg-primary">{{ count(session()->get('cart', [])) }}</span>
-                                @endif
+                        <ul class="slide-menu {{ request()->routeIs('user.*') || request()->routeIs('plants.catalog') || request()->routeIs('cart.*') ? 'show' : '' }}">
+                            <li><a href="{{ route('user.dashboard') }}" class="slide-item {{ request()->routeIs('user.dashboard') ? 'active' : '' }}">
+                                <i class="side-menu__icon fe fe-home"></i> Dashboard
                             </a></li>
-                            <li><a href="{{ route('user.orders.index') }}" class="slide-item {{ request()->routeIs('user.orders.*') ? 'active' : '' }}">My Orders</a></li>
-                            <li><a href="{{ route('user.user.reviews') }}" class="slide-item {{ request()->routeIs('user.user.reviews') ? 'active' : '' }}">My Reviews</a></li>
+                            
+                            <!-- Shopping -->
+                            <li class="sub-slide {{ request()->routeIs('plants.catalog') || request()->routeIs('cart.*') ? 'is-expanded' : '' }}">
+                                <a class="sub-side-menu__item" data-bs-toggle="sub-slide" href="javascript:void(0)">
+                                    <i class="side-menu__icon fe fe-shopping-bag"></i> Shopping
+                                    <i class="sub-angle fe fe-chevron-right"></i>
+                                </a>
+                                <ul class="sub-slide-menu">
+                                    <li><a href="{{ route('plants.catalog') }}" class="sub-slide-item {{ request()->routeIs('plants.catalog') ? 'active' : '' }}">Plant Catalog</a></li>
+                                    <li><a href="{{ route('cart.index') }}" class="sub-slide-item {{ request()->routeIs('cart.*') ? 'active' : '' }}">
+                                        Cart
+                                        @if(session()->has('cart') && count(session()->get('cart', [])) > 0)
+                                            <span class="badge bg-primary">{{ count(session()->get('cart', [])) }}</span>
+                                        @endif
+                                    </a></li>
+                                </ul>
+                            </li>
+
+                            <!-- Orders -->
+                            <li class="sub-slide {{ request()->routeIs('user.orders.*') ? 'is-expanded' : '' }}">
+                                <a class="sub-side-menu__item" data-bs-toggle="sub-slide" href="javascript:void(0)">
+                                    <i class="side-menu__icon fe fe-package"></i> Orders
+                                    <i class="sub-angle fe fe-chevron-right"></i>
+                                </a>
+                                <ul class="sub-slide-menu">
+                                    <li><a href="{{ route('user.orders.index') }}" class="sub-slide-item {{ request()->routeIs('user.orders.index') ? 'active' : '' }}">All Orders</a></li>
+                                    <li><a href="{{ route('user.orders.active') }}" class="sub-slide-item {{ request()->routeIs('user.orders.active') ? 'active' : '' }}">Active Orders</a></li>
+                                </ul>
+                            </li>
+
+                            <li><a href="{{ route('user.user.reviews') }}" class="slide-item {{ request()->routeIs('user.user.reviews') ? 'active' : '' }}">
+                                <i class="side-menu__icon fe fe-star"></i> My Reviews
+                            </a></li>
+                            
+                            <li><a href="{{ route('user.wishlist') }}" class="slide-item {{ request()->routeIs('user.wishlist') ? 'active' : '' }}">
+                                <i class="side-menu__icon fe fe-heart"></i> Wishlist
+                            </a></li>
+                            
+                            <li><a href="{{ route('user.profile') }}" class="slide-item {{ request()->routeIs('user.profile') ? 'active' : '' }}">
+                                <i class="side-menu__icon fe fe-settings"></i> Profile Settings
+                            </a></li>
+
+                            <li><a href="{{ route('plants.my-plants') }}" class="slide-item {{ request()->routeIs('plants.my-plants') ? 'active' : '' }}">
+                                <i class="side-menu__icon fe fe-grid"></i> My Plants
+                            </a></li>
                         </ul>
                     </li>
                 @endrole

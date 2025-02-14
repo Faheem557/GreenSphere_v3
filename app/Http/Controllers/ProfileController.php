@@ -119,4 +119,24 @@ class ProfileController extends Controller
 
         return response()->json(['message' => 'Location updated successfully']);
     }
+
+    public function userProfile()
+    {
+        return view('user.profile.edit', ['user' => auth()->user()]);
+    }
+
+    public function updateUserProfile(Request $request)
+    {
+        // Add validation and update logic
+    }
+
+    public function sellerProfile()
+    {
+        return view('seller.profile.edit', ['user' => auth()->user()]);
+    }
+
+    public function updateSellerProfile(Request $request)
+    {
+        // Add validation and update logic
+    }
 }

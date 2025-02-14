@@ -45,4 +45,24 @@ class SellerOrderController extends Controller
 
         return redirect()->back()->with('success', 'Order status updated successfully');
     }
+
+    public function pending()
+    {
+        $orders = Order::where('status', 'pending')
+            ->where('seller_id', auth()->id())
+            ->latest()
+            ->paginate(10);
+        
+        return view('seller.orders.pending', compact('orders'));
+    }
+
+    public function completed()
+    {
+        $orders = Order::where('status', 'completed')
+            ->where('seller_id', auth()->id())
+            ->latest()
+            ->paginate(10);
+        
+        return view('seller.orders.completed', compact('orders'));
+    }
 }
