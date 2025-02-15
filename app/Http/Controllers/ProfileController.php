@@ -2,86 +2,72 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use App\Models\User;
-use App\Http\Requests\UpdateProfileRequest;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Redirect;
+use App\Http\Requests\ProfileUpdateRequest;
 
 class ProfileController extends Controller
 {
-    public function edit()
+    public function edit(Request $request): View
     {
-        $user = Auth::user()->load('profile');
-        return view('profile.edit', compact('user'));
+        return view('profile.edit', [
+            'user' => $request->user(),
+        ]);
     }
 
-    public function updateProfile(UpdateProfileRequest $request)
+    public function updateProfile(Request $request): RedirectResponse
     {
-        $user = Auth::user();
-        $profile = $user->profile;
-
-        // Update basic info
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
+        $user = $request->user();
+        
+        // Validate the request
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'gardening_level' => ['nullable', 'string', 'in:beginner,intermediate,advanced'],
+            'plant_preferences' => ['nullable', 'array'],
+            'location' => ['nullable', 'array'],
+            'notification_preferences' => ['nullable', 'array'],
         ]);
+
+        // Update user
+        $user->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+        ]);
+
+        // Get or create profile
+        $profile = $user->profile()->firstOrCreate([]);
 
         // Update profile
         $profile->update([
-            'bio' => $request->bio,
-            'phone_number' => $request->phone_number,
-            'gardening_level' => $request->gardening_level,
-            'plant_preferences' => $request->plant_preferences,
+            'gardening_level' => $validated['gardening_level'] ?? null,
+            'plant_preferences' => $validated['plant_preferences'] ?? [],
+            'location_data' => $validated['location'] ?? [],
+            'notification_preferences' => $validated['notification_preferences'] ?? [],
         ]);
 
-        // Update location if provided
-        if ($request->has('location')) {
-            $profile->update([
-                'location_data' => [
-                    'address' => $request->location['address'],
-                    'city' => $request->location['city'],
-                    'state' => $request->location['state'],
-                    'zip' => $request->location['zip'],
-                    'latitude' => $request->location['latitude'],
-                    'longitude' => $request->location['longitude'],
-                ]
-            ]);
-        }
-
-        return redirect()->back()->with('success', 'Profile updated successfully');
+        return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
-    public function updateNotificationPreferences(Request $request)
+    public function destroy(Request $request): RedirectResponse
     {
-        $user = Auth::user();
-        $profile = $user->profile;
-
-        $profile->update([
-            'notification_preferences' => $request->preferences
+        $request->validateWithBag('userDeletion', [
+            'password' => ['required', 'current_password'],
         ]);
 
-        return response()->json(['message' => 'Notification preferences updated']);
-    }
+        $user = $request->user();
 
-    public function updateLocation(Request $request)
-    {
-        $validated = $request->validate([
-            'address' => 'required|string',
-            'city' => 'required|string',
-            'state' => 'required|string',
-            'zip' => 'required|string',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-        ]);
+        Auth::logout();
 
-        $user = Auth::user();
-        $profile = $user->profile;
+        $user->delete();
 
-        $profile->update([
-            'location_data' => $validated
-        ]);
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-        return response()->json(['message' => 'Location updated successfully']);
+        return Redirect::to('/');
     }
 }
