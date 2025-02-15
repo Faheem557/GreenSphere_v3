@@ -30,7 +30,6 @@ require __DIR__ . '/auth.php';
 // Role-specific routes
 Route::middleware(['auth', 'verified'])->group(function () {
     // Common Profile Routes
-<<<<<<< HEAD
     Route::controller(ProfileController::class)->group(function () {
         Route::get('/profile', 'edit')->name('profile.edit');
         Route::put('/profile', 'updateProfile')->name('profile.update');
@@ -40,7 +39,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/profile/location', 'location')->name('profile.location');
         Route::post('/profile/location', 'updateLocation');
     });
-=======
     // Route::controller(ProfileController::class)->group(function () {
     //     Route::get('/profile', 'edit')->name('profile.edit');
     //     Route::patch('/profile', 'update')->name('profile.update');
@@ -50,7 +48,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     //     Route::get('/profile/location', 'location')->name('profile.location');
     //     Route::post('/profile/location', 'updateLocation');
     // });
->>>>>>> 865d8f054825cc550d859cd9305be146439ead36
 
     // Plant Routes (Public)
     Route::controller(PlantController::class)->group(function () {
