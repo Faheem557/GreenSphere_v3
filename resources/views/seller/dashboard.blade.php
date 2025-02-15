@@ -117,7 +117,7 @@
                                         <tr>
                                             <td>#{{ $order->id }}</td>
                                             <td>{{ $order->buyer->name }}</td>
-                                            <td>₹{{ number_format($order->total_amount, 2) }}</td>
+                                            <td>PKR-{{ number_format($order->total_amount, 2) }}</td>
                                             <td>
                                                 <span class="badge bg-{{ $order->status === 'pending' ? 'warning' : 'success' }}">
                                                     {{ ucfirst($order->status) }}
@@ -164,7 +164,7 @@ $(document).ready(function() {
                     <tr>
                         <td>${e.order.id}</td>
                         <td>${e.order.customer_name}</td>
-                        <td>₹${e.order.total}</td>
+                        <td>PKR-${e.order.total}</td>
                         <td><span class="badge bg-warning">New</span></td>
                         <td>
                             <a href="/seller/orders/${e.order.id}" class="btn btn-sm btn-primary">View</a>

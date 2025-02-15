@@ -54,7 +54,8 @@ class Order extends Model
 
     public function plants()
     {
-        return $this->belongsToMany(Plant::class, 'order_plant');
+        return $this->belongsToMany(Plant::class, 'order_items')
+            ->withPivot('quantity', 'price');
     }
 
     // Helper method to calculate total

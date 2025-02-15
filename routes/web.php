@@ -30,6 +30,7 @@ require __DIR__ . '/auth.php';
 // Role-specific routes
 Route::middleware(['auth', 'verified'])->group(function () {
     // Common Profile Routes
+<<<<<<< HEAD
     Route::controller(ProfileController::class)->group(function () {
         Route::get('/profile', 'edit')->name('profile.edit');
         Route::put('/profile', 'updateProfile')->name('profile.update');
@@ -39,6 +40,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/profile/location', 'location')->name('profile.location');
         Route::post('/profile/location', 'updateLocation');
     });
+=======
+    // Route::controller(ProfileController::class)->group(function () {
+    //     Route::get('/profile', 'edit')->name('profile.edit');
+    //     Route::patch('/profile', 'update')->name('profile.update');
+    //     Route::delete('/profile', 'destroy')->name('profile.destroy');
+    //     Route::get('/profile/preferences', 'preferences')->name('profile.preferences');
+    //     Route::post('/profile/preferences', 'updatePreferences');
+    //     Route::get('/profile/location', 'location')->name('profile.location');
+    //     Route::post('/profile/location', 'updateLocation');
+    // });
+>>>>>>> 865d8f054825cc550d859cd9305be146439ead36
 
     // Plant Routes (Public)
     Route::controller(PlantController::class)->group(function () {
@@ -62,7 +74,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Order Routes
         Route::controller(OrderController::class)->group(function () {
             Route::post('/orders', 'store')->name('orders.store');
-            Route::get('/orders', 'userOrders')->name('orders.index');
+            Route::get('/orders', 'index')->name('orders.index');
             Route::get('/orders/{order}', 'show')->name('orders.show');
             Route::get('/orders/{order}/confirmation', 'confirmation')->name('orders.confirmation');
             Route::get('/orders/{order}/track', 'track')->name('orders.track');
@@ -94,16 +106,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
         // Order Management
-        Route::controller(OrderController::class)->group(function () {
-            Route::get('/orders', 'sellerOrders')->name('orders.index');
+        Route::controller(SellerOrderController::class)->group(function () {
+            Route::get('/orders', 'index')->name('orders.index');
+            Route::get('/orders/pending', 'pending')->name('orders.pending');
+            Route::get('/orders/completed', 'completed')->name('orders.completed');
             Route::get('/orders/{order}', 'show')->name('orders.show');
-            Route::post('/orders/{order}/status', 'updateStatus')->name('orders.updateStatus');
+            Route::put('/orders/{order}/status', 'updateStatus')->name('orders.update-status');
         });
 
         // Review Management
         Route::controller(ReviewController::class)->group(function () {
             Route::get('/reviews', 'sellerReviews')->name('reviews.index');
             Route::post('/reviews/{review}/reply', 'reply')->name('reviews.reply');
+        });
+
+        // Profile Management
+        Route::controller(ProfileController::class)->group(function () {
+            Route::get('/profile', 'sellerProfile')->name('profile');
+            Route::put('/profile', 'updateSellerProfile')->name('profile.update');
         });
     });
 
@@ -142,7 +162,7 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     // Order Routes
     Route::controller(OrderController::class)->group(function () {
         Route::post('/orders', 'store')->name('orders.store');
-        Route::get('/orders', 'userOrders')->name('orders.index');
+        Route::get('/orders', 'index')->name('orders.index');
         Route::get('/orders/{order}', 'show')->name('orders.show');
         Route::get('/orders/{order}/confirmation', 'confirmation')->name('orders.confirmation');
     });
@@ -189,3 +209,38 @@ Route::get('/debug-image/{filename}', function($filename) {
 });
 
 Route::post('/orders/checkout', [OrderController::class, 'checkout'])->name('orders.checkout');
+
+// User Routes
+Route::middleware(['auth', 'role:user'])->prefix('user')->name('user.')->group(function () {
+    Route::get('/dashboard', [PlantController::class, 'userDashboard'])->name('dashboard');
+
+    // Shopping Routes
+    Route::controller(PlantController::class)->group(function () {
+        // Wishlist Routes
+        Route::get('/wishlist', 'wishlist')->name('wishlist');
+        Route::post('/wishlist/add/{plant}', 'addToWishlist')->name('wishlist.add');
+        Route::delete('/wishlist/remove/{plant}', 'removeFromWishlist')->name('wishlist.remove');
+    });
+
+    // Order Routes
+    Route::controller(OrderController::class)->group(function () {
+        Route::get('/orders', 'index')->name('orders.index');
+        Route::get('/orders/active', 'active')->name('orders.active');
+        Route::get('/orders/{order}', 'show')->name('orders.show');
+        Route::get('/orders/{order}/track', 'track')->name('orders.track');
+    });
+
+    // Review Routes
+    Route::controller(ReviewController::class)->group(function () {
+        Route::get('/reviews', 'userReviews')->name('user.reviews');
+        Route::post('/reviews/{plant}', 'store')->name('reviews.store');
+        Route::put('/reviews/{review}', 'update')->name('reviews.update');
+        Route::delete('/reviews/{review}', 'destroy')->name('reviews.destroy');
+    });
+
+    // Profile Management
+    Route::controller(ProfileController::class)->group(function () {
+        Route::get('/profile', 'userProfile')->name('profile');
+        Route::put('/profile', 'updateUserProfile')->name('profile.update');
+    });
+});

@@ -6,17 +6,16 @@ use App\Models\User;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Redirect;
-use App\Http\Requests\ProfileUpdateRequest;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use App\Http\Requests\UpdateProfileRequest;
 
 class ProfileController extends Controller
 {
-    public function edit(Request $request): View
+    public function edit()
     {
-        return view('profile.edit', [
-            'user' => $request->user(),
-        ]);
+        $user = Auth::user()->load('profile');
+        return view('profile.edit', compact('user'));
     }
 
     public function updateProfile(Request $request): RedirectResponse
@@ -69,5 +68,25 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    public function userProfile()
+    {
+        return view('user.profile.edit', ['user' => auth()->user()]);
+    }
+
+    public function updateUserProfile(Request $request)
+    {
+        // Add validation and update logic
+    }
+
+    public function sellerProfile()
+    {
+        return view('seller.profile.edit', ['user' => auth()->user()]);
+    }
+
+    public function updateSellerProfile(Request $request)
+    {
+        // Add validation and update logic
     }
 }

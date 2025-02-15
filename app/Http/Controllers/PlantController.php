@@ -324,6 +324,19 @@ class PlantController extends BaseController
             });
         }
 
+        // Handle price filtering
+        if ($request->has('price_range')) {
+            list($min, $max) = explode('-', $request->price_range);
+            $query->whereBetween('price', [$min, $max]);
+        } elseif ($request->has('min_price') && $request->has('max_price')) {
+            $query->whereBetween('price', [$request->min_price, $request->max_price]);
+        }
+
+        // Handle category filter
+        if ($request->has('category')) {
+            $query->where('category_id', $request->category);
+        }
+
         // Handle sorting
         $sort = $request->get('sort', 'name_asc');
         switch ($sort) {
@@ -342,7 +355,15 @@ class PlantController extends BaseController
 
         $plants = $query->paginate(12);
         
-        return view('plants.catalog', compact('plants'));
+        // Get wishlisted plant IDs for the current user
+        $wishlistedPlantIds = [];
+        if (auth()->check()) {
+            $wishlistedPlantIds = auth()->user()->wishlistedPlants()
+                ->pluck('plants.id')
+                ->toArray();
+        }
+
+        return view('plants.catalog', compact('plants', 'wishlistedPlantIds'));
     }
 
     public function userDashboard()
@@ -377,5 +398,52 @@ class PlantController extends BaseController
             ->unique('id');
             
         return view('plants.my-plants', compact('plants'));
+    }
+
+    public function wishlist()
+    {
+        $wishlistedPlants = auth()->user()->wishlistedPlants()
+            ->with('seller')
+            ->latest('wishlists.created_at')
+            ->paginate(12);
+        
+        return view('user.wishlist', compact('wishlistedPlants'));
+    }
+
+    public function addToWishlist(Plant $plant)
+    {
+        try {
+            $user = auth()->user();
+            
+            // Check if plant is already in wishlist
+            if ($user->wishlistedPlants()->where('plant_id', $plant->id)->exists()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Plant is already in your wishlist',
+                    'is_wishlisted' => true
+                ]);
+            }
+
+            // Add to wishlist
+            $user->wishlistedPlants()->attach($plant->id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Plant added to wishlist successfully',
+                'is_wishlisted' => true
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not add plant to wishlist'
+            ], 500);
+        }
+    }
+
+    public function removeFromWishlist(Plant $plant)
+    {
+        auth()->user()->wishlistedPlants()->detach($plant->id);
+        return back()->with('success', 'Plant removed from wishlist successfully');
     }
 } 

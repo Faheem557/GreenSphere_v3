@@ -85,13 +85,13 @@ Track Order #{{ $order->id }}
                                     <tr>
                                         <td>{{ $item->plant->name }}</td>
                                         <td>{{ $item->quantity }}</td>
-                                        <td>₹{{ number_format($item->price, 2) }}</td>
-                                        <td>₹{{ number_format($item->price * $item->quantity, 2) }}</td>
+                                        <td>PKR-{{ number_format($item->price, 2) }}</td>
+                                        <td>PKR-{{ number_format($item->price * $item->quantity, 2) }}</td>
                                     </tr>
                                     @endforeach
                                     <tr>
                                         <td colspan="3" class="text-end"><strong>Total:</strong></td>
-                                        <td><strong>₹{{ number_format($order->total_amount, 2) }}</strong></td>
+                                        <td><strong>PKR-{{ number_format($order->total_amount, 2) }}</strong></td>
                                     </tr>
                                 </tbody>
                             </table>

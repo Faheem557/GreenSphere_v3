@@ -32,7 +32,6 @@
 
 <body class="app sidebar-mini ltr light-mode">
 
-
 @include('layouts.loader')
 
     <!-- PAGE -->
@@ -49,7 +48,6 @@
 
                 @yield('maincontent')
                         
-
                 </div>
             </div>
             <!--app-content close-->
@@ -62,11 +60,19 @@
 
     </div>
 
+<<<<<<< HEAD
     <!-- Scripts in correct order -->
     <!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script> -->
     
+=======
+    <!-- Core JS Files -->
+    {{-- <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> --}}
+
+>>>>>>> 865d8f054825cc550d859cd9305be146439ead36
     <!-- Initialize toastr -->
     <script>
     $(document).ready(function() {
@@ -105,9 +111,6 @@
         @if(Session::has('warning'))
             toastr.warning("{{ Session::get('warning') }}", 'Warning');
         @endif
-
-        // Test toastr (remove in production)
-        // toastr.success('Test notification', 'Success');
     });
     </script>
 

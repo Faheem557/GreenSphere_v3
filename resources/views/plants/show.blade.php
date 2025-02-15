@@ -141,7 +141,7 @@
                     <span class="badge bg-danger">Out of Stock</span>
                 @endif
             </div>
-            <h3 class="text-primary mb-3">₹{{ number_format($plant->price, 2) }}</h3>
+            <h3 class="text-primary mb-3">PKR-{{ number_format($plant->price, 2) }}</h3>
             <p class="text-muted">{{ $plant->description }}</p>
             
             <!-- Stock and Add to Cart Section -->

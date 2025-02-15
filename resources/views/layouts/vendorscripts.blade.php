@@ -2,17 +2,44 @@
 <a href="#top" id="back-to-top"><i class="fa fa-angle-up"></i></a>
 
 <!-- JQUERY JS -->
-<script src="{{ URL::asset('assets/js/jquery.min.js') }}"></script>
+<script src="{{ asset('assets/js/jquery.min.js') }}"></script>
+{{-- <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- BOOTSTRAP JS -->
-<script src="{{ URL::asset('assets/plugins/bootstrap/js/popper.min.js') }}"></script>
-<script src="{{ URL::asset('assets/plugins/bootstrap/js/bootstrap.min.js') }}"></script>
+<script src="{{ asset('assets/plugins/bootstrap/js/popper.min.js') }}"></script>
+<script src="{{ asset('assets/plugins/bootstrap/js/bootstrap.min.js') }}"></script>
 
-<!-- SPARKLINE JS-->
-<script src="{{ URL::asset('assets/js/jquery.sparkline.min.js') }}"></script>
+@if(file_exists(public_path('assets/plugins/p-scroll/perfect-scrollbar.js')))
+    <!-- Perfect SCROLLBAR JS -->
+    <script src="{{ asset('assets/plugins/p-scroll/perfect-scrollbar.js') }}"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize perfect scrollbar only if elements exist
+        const scrollElements = document.querySelectorAll('.scroll-container');
+        if (scrollElements.length > 0) {
+            scrollElements.forEach(element => {
+                new PerfectScrollbar(element);
+            });
+        }
+    });
+    </script>
+@endif
+
+<!-- SIDE-MENU JS -->
+<script src="{{ asset('assets/plugins/sidemenu/sidemenu.js') }}"></script>
+
+<!-- SIDEBAR JS -->
+<script src="{{ asset('assets/plugins/sidebar/sidebar.js') }}"></script>
+
+@if(file_exists(public_path('assets/js/themeColors.js')))
+    <!-- Color Theme js -->
+    <script src="{{ asset('assets/js/themeColors.js') }}"></script>
+@endif
 
 <!-- Sticky js -->
-<script src="{{ URL::asset('assets/js/sticky.js') }}"></script>
+<script src="{{ asset('assets/js/sticky.js') }}"></script>
 
 <!-- CHART-CIRCLE JS-->
 <script src="{{ URL::asset('assets/js/circle-progress.min.js') }}"></script>
@@ -21,13 +48,8 @@
 <script src="{{ URL::asset('assets/plugins/peitychart/jquery.peity.min.js') }}"></script>
 <script src="{{ URL::asset('assets/plugins/peitychart/peitychart.init.js') }}"></script>
 
-<!-- SIDEBAR JS -->
-<script src="{{ URL::asset('assets/plugins/sidebar/sidebar.js') }}"></script>
-
-<!-- Perfect SCROLLBAR JS-->
-<!--<script src="{{ URL::asset('assets/plugins/p-scroll/perfect-scrollbar.js') }}"></script>-->
-<!--<script src="{{ URL::asset('assets/plugins/p-scroll/pscroll.js') }}"></script>-->
-<!--<script src="{{ URL::asset('assets/plugins/p-scroll/pscroll-1.js') }}"></script>-->
+<!-- SPARKLINE JS-->
+<script src="{{ URL::asset('assets/js/jquery.sparkline.min.js') }}"></script>
 
 <!-- INTERNAL CHARTJS CHART JS-->
 <script src="{{ URL::asset('assets/plugins/chart/Chart.bundle.js') }}"></script>
@@ -65,9 +87,6 @@
 <script src="{{ URL::asset('assets/plugins/jvectormap/jquery-jvectormap-2.0.2.min.js') }}"></script>
 <script src="{{ URL::asset('assets/plugins/jvectormap/jquery-jvectormap-world-mill-en.js') }}"></script>
 
-<!-- SIDE-MENU JS-->
-<script src="{{ URL::asset('assets/plugins/sidemenu/sidemenu.js') }}"></script>
-
 <!-- TypeHead js -->
 <script src="{{ URL::asset('assets/plugins/bootstrap5-typehead/autocomplete.js') }}"></script>
 <script src="{{ URL::asset('assets/js/typehead.js') }}"></script>
@@ -75,17 +94,14 @@
 <!-- INTERNAL INDEX JS -->
 <!--<script src="{{ URL::asset('assets/js/index1.js') }}"></script>-->
 
-<!-- Color Theme js -->
-<script src="{{ URL::asset('assets/js/themeColors.js') }}"></script>
-
 <!-- CUSTOM JS -->
-<script src="{{ URL::asset('assets/js/custom.js') }}"></script>
+<script src="{{ asset('assets/js/custom.js') }}"></script>
 
 <!-- Custom-switcher -->
-<script src="{{ URL::asset('assets/js/custom-swicher.js') }}"></script>
+<script src="{{ asset('assets/js/custom-swicher.js') }}"></script>
 
 <!-- Switcher js -->
-<!--<script src="{{ URL::asset('assets/switcher/js/switcher.js') }}"></script>-->
+<script src="{{ asset('assets/switcher/js/switcher.js') }}"></script>
 
 @yield('spasific-scripts')
 @yield('page-wise-scripts')
